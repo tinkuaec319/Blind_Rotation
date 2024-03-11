@@ -17,6 +17,7 @@ cmake -DWITH_NTL=ON ..
 make 
 ```
 2. Run the `boolean-xzddf` program in `build/bin/examples/binfhe`.
+   
 Experimental Result(12th Gen Intel(R) Core(TM) i9-12900H @2.50 GHz and 32 GB RAM, running Ubuntu 20.04.6 LTS):
  ```
 100 times of XZDDF      P128G    gate bootstrapping:    2812.5ms
