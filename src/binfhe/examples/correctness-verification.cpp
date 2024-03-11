@@ -81,7 +81,7 @@ void Correctness_verification(int m0,int m1, int cyc_times)
     for(int i=0;i<cyc_times;i++)
     {
         auto cc = BinFHEContext();
-        cc.GenerateBinFHEContext(P128G_2, XZDDF);
+        cc.GenerateBinFHEContext(P128G, XZDDF);
         auto sk = cc.KeyGen();
         cc.NBTKeyGen(sk);
         auto ct1 = cc.Encrypt(sk, m0);
