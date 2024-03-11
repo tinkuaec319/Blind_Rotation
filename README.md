@@ -8,7 +8,7 @@ The CHIFHE library contains the implementation of the fully homorphic encryption
 A C++ compiler, the NTL libraries.
 
 ## Run the code
-1. Configure, build and compile the project. Building OpenFHE for Best Performance
+1. Configure, build and compile the project.
 ```
 mkdir build
 cd build
