@@ -102,7 +102,7 @@ int main() {
     int cyc_times = 100;
     Runtime(cyc_times,XZDDF,P128G);
     Runtime(cyc_times,LMKCDEY,STD128_LMKCDEY);
-    Runtime(cyc_times,AP,STD192);
-    Runtime(cyc_times,GINX,STD192);
+    Runtime(cyc_times,AP,STD128);
+    Runtime(cyc_times,GINX,STD128);
     return 0;
 }
