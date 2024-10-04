@@ -241,20 +241,22 @@ LWECiphertext BinFHEScheme::EvalBinGate(const std::shared_ptr<BinFHECryptoParams
     //构造(5q/8,0)
     auto n = params->GetLWEParams()->Getn();
     NativeVector zero(n,0);
-    uint32_t q = params->GetLWEParams()->Getq().ConvertToInt<uint32_t>();
+    uint32_t q  = params->GetLWEParams()->Getq().ConvertToInt<uint32_t>();
+    uint32_t qp = params->GetLWEParams()->Getqp(); //.ConvertToInt<uint32_t>();
     zero.SetModulus(q);
-    NativeInteger temp_b= 5*q/8;
-    LWECiphertext ct_temp = std::make_shared<LWECiphertextImpl>(LWECiphertextImpl(std::move(zero), temp_b.Mod(q)));
+    //For LWE
+    NativeInteger temp_b= 5*q/(8*qp);  // This had been changed due to new cipher mod p
+    LWECiphertext ct_temp = std::make_shared<LWECiphertextImpl>(LWECiphertextImpl(std::move(zero), temp_b.Mod(q/qp)));
 
     // the additive homomorphic operation for XOR/NXOR is different from the other gates we compute
     // 2*(ct1 - ct2) mod 4 for XOR, me map 1,2 -> 1 and 3,0 -> 0
     if ((gate == XOR_FAST) || (gate == XNOR_FAST)) {
-        LWEscheme->EvalSubEq(ctprep, ct2);
-        LWEscheme->EvalAddEq(ctprep, ctprep);
+        LWEscheme->EvalSubEq(qp, ctprep, ct2);
+        LWEscheme->EvalAddEq(qp, ctprep, ctprep);
     }
     else {
-        LWEscheme->EvalAddEq(ctprep, ct2);
-        LWEscheme->EvalSubEq(ct_temp,ctprep);
+        LWEscheme->EvalAddEq(qp, ctprep, ct2);
+        LWEscheme->EvalSubEq(qp, ct_temp, ctprep);
 
     }
       
@@ -275,7 +277,7 @@ LWECiphertext BinFHEScheme::EvalBinGate(const std::shared_ptr<BinFHECryptoParams
     // Key switching
     auto ctKS = LWEscheme->KeySwitch(LWEParams, EK.KSkey, ctMS);
     // Modulus switching
-    return LWEscheme->ModSwitch(ct1->GetModulus(), ctKS);
+    return LWEscheme->ModSwitchLwr(ct1->GetModulus(), qp, ctKS);
 }
 
 // Full evaluation as described in https://eprint.iacr.org/2020/086
@@ -285,6 +287,7 @@ LWECiphertext BinFHEScheme::EvalBinGate(const std::shared_ptr<BinFHECryptoParams
     if (ct1 == ct2)
         OPENFHE_THROW(config_error, "Input ciphertexts should be independant");
 
+    uint32_t qp = params->GetLWEParams()->Getqp();
     // By default, we compute XOR/XNOR using a combination of AND, OR, and NOT gates 迭代计算
     if ((gate == XOR) || (gate == XNOR)) {
         const auto& ctAND1 = EvalBinGate(params, AND, EK, ct1, EvalNOT(params, ct2));
@@ -299,14 +302,14 @@ LWECiphertext BinFHEScheme::EvalBinGate(const std::shared_ptr<BinFHECryptoParams
     // the additive homomorphic operation for XOR/NXOR is different from the other gates we compute
     // 2*(ct1 - ct2) mod 4 for XOR, me map 1,2 -> 1 and 3,0 -> 0
     if ((gate == XOR_FAST) || (gate == XNOR_FAST)) {
-        LWEscheme->EvalSubEq(ctprep, ct2);
-        LWEscheme->EvalAddEq(ctprep, ctprep);
+        LWEscheme->EvalSubEq(qp, ctprep, ct2);
+        LWEscheme->EvalAddEq(qp, ctprep, ctprep);
     }
     else {
         // for all other gates, we simply compute (ct1 + ct2) mod 4
         // for AND: 0,1 -> 0 and 2,3 -> 1
         // for OR: 1,2 -> 1 and 3,0 -> 0
-        LWEscheme->EvalAddEq(ctprep, ct2);
+        LWEscheme->EvalAddEq(qp, ctprep, ct2);
     }
 
     auto acc{BootstrapGateCore(params, gate, EK.BSkey, ctprep)};
@@ -330,7 +333,9 @@ LWECiphertext BinFHEScheme::EvalBinGate(const std::shared_ptr<BinFHECryptoParams
     // Key switching
     auto ctKS = LWEscheme->KeySwitch(LWEParams, EK.KSkey, ctMS);
     // Modulus switching
-    return LWEscheme->ModSwitch(ct1->GetModulus(), ctKS);
+    // return LWEscheme->ModSwitch(ct1->GetModulus(), ctKS); //for LWE
+    return LWEscheme->ModSwitchLwr(ct1->GetModulus(), qp, ctKS); //for LWR
+    //Above line needs to be checked.
 }
 
 // Full evaluation as described in https://eprint.iacr.org/2020/086
@@ -346,13 +351,14 @@ LWECiphertext BinFHEScheme::EvalBinGate(const std::shared_ptr<BinFHECryptoParams
     }
 
     NativeInteger p = ctvector[0]->GetptModulus();
+    uint32_t qp = params->GetLWEParams()->Getqp();
 
     LWECiphertext ctprep = std::make_shared<LWECiphertextImpl>(*ctvector[0]);
     ctprep->SetptModulus(p);
     if ((gate == MAJORITY) || (gate == AND3) || (gate == OR3) || (gate == AND4) || (gate == OR4)) {
         // we simply compute sum(ctvector[i]) mod p
         for (size_t i = 1; i < ctvector.size(); i++) {
-            LWEscheme->EvalAddEq(ctprep, ctvector[i]);
+            LWEscheme->EvalAddEq(qp, ctprep, ctvector[i]);
         }
         auto acc = BootstrapGateCore(params, gate, EK.BSkey, ctprep);
 
@@ -396,9 +402,10 @@ LWECiphertext BinFHEScheme::EvalBinGate(const std::shared_ptr<BinFHECryptoParams
 LWECiphertext BinFHEScheme::Bootstrap(const std::shared_ptr<BinFHECryptoParams>& params, const RingGSWBTKey& EK,
                                       ConstLWECiphertext& ct) const {
     NativeInteger p = ct->GetptModulus();
+    uint32_t qp = params->GetLWEParams()->Getqp();
     LWECiphertext ctprep{std::make_shared<LWECiphertextImpl>(*ct)};
     // ctprep = ct + q/4
-    LWEscheme->EvalAddConstEq(ctprep, (ct->GetModulus() >> 2));
+    LWEscheme->EvalAddConstEq(qp, ctprep, (ct->GetModulus() >> 2));
 
     auto acc{BootstrapGateCore(params, AND, EK.BSkey, ctprep)};
 
@@ -428,12 +435,12 @@ LWECiphertext BinFHEScheme::Bootstrap(const std::shared_ptr<BinFHECryptoParams>&
 LWECiphertext BinFHEScheme::EvalNOT(const std::shared_ptr<BinFHECryptoParams>& params, ConstLWECiphertext& ct) const {
     NativeInteger q{ct->GetModulus()};
     uint32_t n{ct->GetLength()};
+    uint32_t qp=params->GetLWEParams()->Getqp();
 
     NativeVector a(n, q);
     for (uint32_t i = 0; i < n; ++i)
         a[i] = ct->GetA(i) == 0 ? 0 : q - ct->GetA(i);
-
-    return std::make_shared<LWECiphertextImpl>(std::move(a), (q >> 2).ModSubFast(ct->GetB(), q));
+    return std::make_shared<LWECiphertextImpl>(std::move(a), (q/qp >> 2).ModSubFast(ct->GetB(), q/qp));
 }
 
 // Evaluate Arbitrary Function homomorphically
@@ -444,12 +451,13 @@ LWECiphertext BinFHEScheme::EvalFunc(const std::shared_ptr<BinFHECryptoParams>& 
     auto ct1 = std::make_shared<LWECiphertextImpl>(*ct);
     NativeInteger q{ct->GetModulus()};
     uint32_t functionProperty{this->checkInputFunction(LUT, q)};
+    uint32_t qp = params->GetLWEParams()->Getqp();
 
     if (functionProperty == 0) {  // negacyclic function only needs one bootstrap
         auto fLUT = [LUT](NativeInteger x, NativeInteger q, NativeInteger Q) -> NativeInteger {
             return LUT[x.ConvertToInt()];
         };
-        LWEscheme->EvalAddConstEq(ct1, beta);
+        LWEscheme->EvalAddConstEq(qp, ct1, beta);
         return BootstrapFunc(params, EK, ct1, fLUT, q);
     }
 
@@ -473,7 +481,7 @@ LWECiphertext BinFHEScheme::EvalFunc(const std::shared_ptr<BinFHECryptoParams>& 
         ct1->GetA().SetModulus(dq);
 
         auto ct2 = std::make_shared<LWECiphertextImpl>(*ct1);
-        LWEscheme->EvalAddConstEq(ct2, beta);
+        LWEscheme->EvalAddConstEq(qp, ct2, beta);
         // this is 1/4q_small or -1/4q_small mod q
         auto f0 = [](NativeInteger x, NativeInteger q, NativeInteger Q) -> NativeInteger {
             if (x < (q >> 1))
@@ -482,9 +490,9 @@ LWECiphertext BinFHEScheme::EvalFunc(const std::shared_ptr<BinFHECryptoParams>& 
                 return (q >> 2);
         };
         auto ct3 = BootstrapFunc(params, EK, ct2, f0, dq);
-        LWEscheme->EvalSubEq2(ct1, ct3);
-        LWEscheme->EvalAddConstEq(ct3, beta);
-        LWEscheme->EvalSubConstEq(ct3, q >> 1);
+        LWEscheme->EvalSubEq2(qp, ct1, ct3);
+        LWEscheme->EvalAddConstEq(qp, ct3, beta);
+        LWEscheme->EvalSubConstEq(qp, ct3, q >> 1);
 
         // Now the input is within the range [0, q/2).
         // Note that for non-periodic function, the input q is boosted up to 2q
@@ -500,7 +508,7 @@ LWECiphertext BinFHEScheme::EvalFunc(const std::shared_ptr<BinFHECryptoParams>& 
     }
 
     // Else it's periodic function so we evaluate directly
-    LWEscheme->EvalAddConstEq(ct1, beta);
+    LWEscheme->EvalAddConstEq(qp, ct1, beta);
     // this is 1/4q_small or -1/4q_small mod q
     auto f0 = [](NativeInteger x, NativeInteger q, NativeInteger Q) -> NativeInteger {
         if (x < (q >> 1))
@@ -509,9 +517,9 @@ LWECiphertext BinFHEScheme::EvalFunc(const std::shared_ptr<BinFHECryptoParams>& 
             return (q >> 2);
     };
     auto ct2 = BootstrapFunc(params, EK, ct1, f0, q);
-    LWEscheme->EvalSubEq2(ct, ct2);
-    LWEscheme->EvalAddConstEq(ct2, beta);
-    LWEscheme->EvalSubConstEq(ct2, q >> 2);
+    LWEscheme->EvalSubEq2(qp, ct, ct2);
+    LWEscheme->EvalAddConstEq(qp, ct2, beta);
+    LWEscheme->EvalSubConstEq(qp, ct2, q >> 2);
 
     // Now the input is within the range [0, q/2).
     // Note that for non-periodic function, the input q is boosted up to 2q
@@ -530,9 +538,9 @@ LWECiphertext BinFHEScheme::EvalFloor(const std::shared_ptr<BinFHECryptoParams>&
     const auto& LWEParams = params->GetLWEParams();
     NativeInteger q{roundbits == 0 ? LWEParams->Getq() : beta * (1 << roundbits + 1)};
     NativeInteger mod{ct->GetModulus()};
-
+    uint32_t qp = params->GetLWEParams()->Getqp();
     auto ct1 = std::make_shared<LWECiphertextImpl>(*ct);
-    LWEscheme->EvalAddConstEq(ct1, beta);
+    LWEscheme->EvalAddConstEq(qp, ct1, beta);
 
     auto ct1Modq = std::make_shared<LWECiphertextImpl>(*ct1);
     ct1Modq->SetModulus(q);
@@ -544,7 +552,7 @@ LWECiphertext BinFHEScheme::EvalFloor(const std::shared_ptr<BinFHECryptoParams>&
             return (q >> 2);
     };
     auto ct2 = BootstrapFunc(params, EK, ct1Modq, f1, mod);
-    LWEscheme->EvalSubEq(ct1, ct2);
+    LWEscheme->EvalSubEq(qp, ct1, ct2);
 
     auto ct2Modq = std::make_shared<LWECiphertextImpl>(*ct1);
     ct2Modq->SetModulus(q);
@@ -559,7 +567,7 @@ LWECiphertext BinFHEScheme::EvalFloor(const std::shared_ptr<BinFHECryptoParams>&
             return Q + (q >> 1) - x;
     };
     auto ct3 = BootstrapFunc(params, EK, ct2Modq, f2, mod);
-    LWEscheme->EvalSubEq(ct1, ct3);
+    LWEscheme->EvalSubEq(qp, ct1, ct3);
 
     return ct1;
 }
@@ -571,6 +579,8 @@ LWECiphertext BinFHEScheme::EvalSign(const std::shared_ptr<BinFHECryptoParams>& 
     auto mod{ct->GetModulus()};
     const auto& LWEParams = params->GetLWEParams();
     auto q{LWEParams->Getq()};
+    uint32_t qp = params->GetLWEParams()->Getqp();
+
     if (mod <= q) {
         std::string errMsg =
             "ERROR: EvalSign is only for large precision. For small precision, please use bootstrapping directly";
@@ -616,7 +626,7 @@ LWECiphertext BinFHEScheme::EvalSign(const std::shared_ptr<BinFHECryptoParams>& 
             }
         }
     }
-    LWEscheme->EvalAddConstEq(cttmp, beta);
+    LWEscheme->EvalAddConstEq(qp, cttmp, beta);
 
     if (!schemeSwitch) {
         // if the ended q is smaller than q, we need to change the param for the final boostrapping
@@ -624,7 +634,7 @@ LWECiphertext BinFHEScheme::EvalSign(const std::shared_ptr<BinFHECryptoParams>& 
             return (x < q / 2) ? (Q / 4) : (Q - Q / 4);
         };
         cttmp = BootstrapFunc(params, curEK, cttmp, f3, q);  // this is 1/4q_small or -1/4q_small mod q
-        LWEscheme->EvalSubConstEq(cttmp, q >> 2);
+        LWEscheme->EvalSubConstEq(qp, cttmp, q >> 2);
     }
     else {  // return the negated f3 and do not subtract q/4 for a more natural encoding in scheme switching
         // if the ended q is smaller than q, we need to change the param for the final boostrapping
@@ -720,13 +730,14 @@ NTRUCiphertext BinFHEScheme::BootstrapGateCore(const std::shared_ptr<BinFHECrypt
     NativeInteger Q2pNeg = Q - Q2p;                       //7/8Q-1
 
     uint32_t N = LWEParams->GetN();
+    uint32_t qp = LWEParams->Getqp();
                    
     NativeVector m(N, Q);
     NativeVector new_m(N, Q);
     // Since q | (2*N), we deal with a sparse embedding of Z_Q[x]/(X^{q/2}+1) to
     // Z_Q[x]/(X^N+1)
-    uint32_t factor = (2 * N / q.ConvertToInt());
-    const NativeInteger& b = ct->GetB()*(2*NativeInteger(N)/q);// 0~2N
+    uint32_t factor = (2 * N *qp / q.ConvertToInt()); // bring both into same domain
+    const NativeInteger& b = ct->GetB()*(2*NativeInteger(N)* qp/q); // 0~2N
 
     for (size_t j = 0; j < N; ++j) {
         m[j] = j<N/2 ?  Q2p:Q2pNeg;

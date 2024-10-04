@@ -84,6 +84,7 @@ VectorNTRUACCKey VectorNTRUAccumulatorXZDDF::KeyGenAcc(const std::shared_ptr<Vec
     auto modHalf{mod >> 1};
     size_t n{sv.GetLength()};
     auto q{params->Getq().ConvertToInt<size_t>()};
+    // uint32_t qp{params->Getqp()}; //.ConvertToInt<size_t>()};
     
     VectorNTRUACCKey ek = std::make_shared<VectorNTRUACCKeyImpl>(1, 2, q - 1 > n + 1 ? q - 1 : n + 1);
     //生成评估秘钥
@@ -120,6 +121,7 @@ void VectorNTRUAccumulatorXZDDF::EvalAcc(const std::shared_ptr<VectorNTRUCryptoP
     size_t n   = a.GetLength();
     uint32_t N = params->GetN();
     int32_t q  = params->Getq().ConvertToInt<int32_t>();
+    int32_t qp = params->Getqp(); //.ConvertToInt<int32_t>();
     std::vector<uint32_t> ua(n);
     std::vector<uint32_t> w(n);
     std::vector<uint32_t> invw(n + 1);
@@ -129,12 +131,12 @@ void VectorNTRUAccumulatorXZDDF::EvalAcc(const std::shared_ptr<VectorNTRUCryptoP
 
     for (size_t i = 0; i < n; i++) {
         ua[i]   = a[i].ConvertToInt<int32_t>();       //a
-        w[i]    = (2 * N / q) * ua[i] + 1;            //w_i
+        w[i]    = (2 * N * qp / q) * ua[i] + 1;            //w_i
         invw[i] = ModInverse(w[i], 2 * N) % (2 * N);  //w_inv
     }
     for (size_t i = 0; i < n; i++) {
         NATIVEw[i] = NativeVector::Integer((w[i] * invw[i + 1]) % (2 * N));
-        invindex[i] = (NATIVEw[i].ConvertToInt<int32_t>() - 2*N/q -1) / ( 2*N/q);
+        invindex[i] = (NATIVEw[i].ConvertToInt<int32_t>() - 2*N*qp/q -1) / (2*N*qp/q);
     }
     for (size_t i = 0; i < n; i++) {
         AddToAccXZDDF(params, (*ek)[0][0][i], acc);  ///evk_{0 ~ n-1}

@@ -84,22 +84,29 @@ int main() {
     auto sk = cc.KeyGen();
 
     int m0=1;
-    int m1=1;
+    int m1=0;
+
     LWEPlaintext result;
+    // LWEPlaintext result1;
+    // LWEPlaintext result2;
 
     // Generate the bootstrapping keys (refresh and switching keys)
     std::cout << "Generating the bootstrapping keys..." << std::endl;
     cc.NBTKeyGen(sk);
     std::cout << "Completed the key generation." << std::endl;
 
-    for (int i=0; i<20; i++){
+    for (int i=0; i<10; i++){
 
         // Sample Program: Step 3: Encryption
         auto ct1 = cc.Encrypt(sk, m0);
+        // cc.Decrypt(sk, ct1, &result1);
+
         auto ct2 = cc.Encrypt(sk, m1);
+        // cc.Decrypt(sk, ct2, &result2);
+
         LWECiphertext ctAND1;
 
-        // Sample Program: Step 4: Evaluation
+        // // Sample Program: Step 4: Evaluation
         std::cout << "Start  the  gate bootstrapping " << std::endl;
 
         //Notice: We have only made specific modifications for NAND gates, and will add other gates in the future.
@@ -107,7 +114,8 @@ int main() {
 
         cc.Decrypt(sk, ctAND1, &result);
 
-        std::cout << "Result of encrypted computation of ( "<<m0<<" NAND "<<m1<<" ) = " << result << std::endl;
+        // std::cout << "Result of enc/dec of 1/0 is:"<<result1<<"/"<<result2<<std::endl;
+        std::cout << "Result of enc/dec of 1 NAND 0 is..........:"<<result<<std::endl;
     }    
     return 0;
 }
