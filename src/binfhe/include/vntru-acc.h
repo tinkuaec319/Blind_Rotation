@@ -97,11 +97,35 @@ public:
         OPENFHE_THROW(not_implemented_error, "KeyGenACC operation not supported");
     }
 
+    virtual VectorNTRUACCKey KeyGenAccS(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& skNTT,
+                                 const NativePoly& invskNTT,   ConstLWEPrivateKey& LWEsk) const 
+    {
+        OPENFHE_THROW(not_implemented_error, "KeyGenACC operation not supported");
+    }
+
     virtual void EvalAcc(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek,
                         NTRUCiphertext& acc, const NativeVector& a) const {
             std::cout<<"run EvalAcc in rgsw-acc.h"<<std::endl;
         OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
     }
+
+    virtual void EvalAccS(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek,
+                        NTRUCiphertext& acc, const NativeVector& a) const {
+            std::cout<<"run EvalAccS in rgsw-acc.h"<<std::endl;
+        OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
+    }    
+
+    virtual void EvalAccTS(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek,
+                        NTRUCiphertext& acc, const NativeVector& a) const {
+            std::cout<<"run EvalAccTS in rgsw-acc.h"<<std::endl;
+        OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
+    }    
+
+    virtual void EvalAccTSC(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek,
+                        NTRUCiphertext& acc, const NativeVector& a) const {
+            std::cout<<"run EvalAccTSC in rgsw-acc.h"<<std::endl;
+        OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
+    }        
 
     void SignedDigitDecompose(const std::shared_ptr<VectorNTRUCryptoParams>& params, const std::vector<NativePoly>& input,
                               std::vector<NativePoly>& output) const;

@@ -151,7 +151,7 @@ void VectorNTRUCryptoParams::PreCompute(bool signEval) {
         }
     }
 
-    if (m_method == LMKCDEY) {
+    if (m_method == LMKCDEY || m_method ==XZDDF) {
         constexpr uint32_t gen{5};
         m_logGen.clear();
         uint32_t M{2 * m_N};

@@ -192,10 +192,15 @@ public:
     VectorNTRUBTKey NKeyGen(const std::shared_ptr<BinFHECryptoParams>& params, ConstLWEPrivateKey& LWEsk,
                         KEYGEN_MODE keygenMode) const;
 
+    VectorNTRUBTKey NKeyGenS(const std::shared_ptr<BinFHECryptoParams>& params, ConstLWEPrivateKey& LWEsk,
+                        KEYGEN_MODE keygenMode) const;
+
     //XBW TODO
     LWECiphertext EvalBinGate(const std::shared_ptr<BinFHECryptoParams>& params, BINGATE gate, const VectorNTRUBTKey& EK,
                               ConstLWECiphertext& ct1, ConstLWECiphertext& ct2) const;
 
+    LWECiphertext EvalBinGateS(const std::shared_ptr<BinFHECryptoParams>& params, BINGATE gate, const VectorNTRUBTKey& EK,
+                              ConstLWECiphertext& ct1, ConstLWECiphertext& ct2) const;
     /**
    * Evaluates a binary gate (calls bootstrapping as a subroutine)
    *
@@ -299,6 +304,9 @@ public:
 private:
     NTRUCiphertext BootstrapGateCore(const std::shared_ptr<BinFHECryptoParams>& params, BINGATE gate,
                                      ConstVectorNTRUACCKey& ek,ConstLWECiphertext& ct) const;
+
+    NTRUCiphertext BootstrapGateCoreS(const std::shared_ptr<BinFHECryptoParams>& params, BINGATE gate,
+                                     ConstVectorNTRUACCKey& ek,ConstLWECiphertext& ct) const;                                     
 
     /**
    * Core bootstrapping operation

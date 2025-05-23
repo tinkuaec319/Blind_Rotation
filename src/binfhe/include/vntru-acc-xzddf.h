@@ -87,20 +87,56 @@ public:
 
     VectorNTRUACCKey KeyGenAcc(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& skNTT,
                          const NativePoly& invskNTT,   ConstLWEPrivateKey& LWEsk) const override;
+
+    VectorNTRUACCKey KeyGenAccS(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& skNTT,
+                         const NativePoly& invskNTT,   ConstLWEPrivateKey& LWEsk) const override;
+
     void EvalAcc(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek, NTRUCiphertext& acc,
                  const NativeVector& a) const override;
+
+    void EvalAccS(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek, NTRUCiphertext& acc,
+                 const NativeVector& a) const override;
+
+    void EvalAccTS(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek, NTRUCiphertext& acc,
+                 const NativeVector& a) const override;   
+
+    void EvalAccTSC(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUACCKey& ek, NTRUCiphertext& acc,
+                 const NativeVector& a) const override;                                  
+
 
 private:
 
     VectorNTRUEvalKey KDMKeyGenXZDDF(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& invskNTT,
                             LWEPlaintext m) const;
-    VectorNTRUEvalKey KeyGenXZDDF(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& invskNTT,
+
+    VectorNTRUEvalKey KDMKeyGenXZDDFS(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& invskNTT,
                             LWEPlaintext m) const;                        
+
+    VectorNTRUEvalKey KeyGenXZDDF(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& invskNTT,
+                            LWEPlaintext m) const;          
+
+    VectorNTRUEvalKey KeyGenXZDDFS(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& invskNTT,
+                            LWEPlaintext m) const;       
+
+    VectorNTRUEvalKey KeyGenXZDDFSC(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& skNTT,
+                            const NativePoly& invskNTT, LWEPlaintext m, uint32_t j, LWEPlaintext t) const ;
 
     VectorNTRUEvalKey KeyGenAuto(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& skNTT,
     const NativePoly& invskNTT, LWEPlaintext k) const;
+
+    VectorNTRUEvalKey KeyGenAutoS(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativePoly& skNTT,
+    const NativePoly& invskNTT, LWEPlaintext k) const;
+
+
     void AddToAccXZDDF(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUEvalKey& ek,
                     NTRUCiphertext& acc) const;
+
+    void AddToAccXZDDFS(const std::shared_ptr<VectorNTRUCryptoParams>& params, ConstVectorNTRUEvalKey& ek,
+                    NTRUCiphertext& acc) const;
+
+    void AddToAccXZDDFS_A(const std::shared_ptr<VectorNTRUCryptoParams>& params,
+                                            const NativeInteger& a, ConstVectorNTRUEvalKey& ek, NTRUCiphertext& acc) const;
+
     void Automorphism(const std::shared_ptr<VectorNTRUCryptoParams>& params, const NativeInteger& a,
                       ConstVectorNTRUEvalKey& ak, NTRUCiphertext& acc) const;
 };

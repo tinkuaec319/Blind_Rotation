@@ -71,51 +71,91 @@
 //==================================================================================
 
 #include "binfhecontext.h"
-
+#include <chrono>
+using namespace std::chrono;  
 using namespace lbcrypto;
 
 int main() {
     // Sample Program: Step 1: Set CryptoContext
     auto cc = BinFHEContext();
 
-    cc.GenerateBinFHEContext(P192G, XZDDF);
+    // cc.GenerateBinFHEContext(P192G_LWE, XZDDF);
+    // cc.GenerateBinFHEContext(P192G_LWR, XZDDF);
+    // cc.GenerateBinFHEContext(P128G_LWR, XZDDF);    
+    cc.GenerateBinFHEContext(P128G_LWE, XZDDF);        
 
     // Sample Program: Step 2: Key Generation
     auto sk = cc.KeyGen();
 
-    int m0=1;
-    int m1=0;
+    int n=cc.GetParams()->GetLWEParams()->Getn();
+    NativeInteger q=cc.GetParams()->GetLWEParams()->Getq();
+    std::cout<<"n,q is:"<<n<<"\t"<<q<<std::endl;
+    
+    //Save LWE secret key....
+    //write NTRU secret key into a file
+    std::ofstream outputFile("LWE_Secret_key.txt");  // Open/create a file named "test.txt" for writing
+    if (outputFile.is_open()) {  // Check if the file was successfully opened
+        // Write some text into the file
+        for (int i=0; i<n ; i++)
+        {
+            outputFile << sk->GetElement()[i] <<std::endl;
+        }
+    }
+    // Close the file
+    outputFile.close();  // Close the file after writing
 
-    LWEPlaintext result;
-    // LWEPlaintext result1;
-    // LWEPlaintext result2;
+    int m1=1;
+    int m2=1;
+    auto total_time=0;
+    int Enc_total=100;
 
     // Generate the bootstrapping keys (refresh and switching keys)
     std::cout << "Generating the bootstrapping keys..." << std::endl;
-    cc.NBTKeyGen(sk);
+    
+    //This is for norml bootstrapping .... this do not requires any special property/NTRU dimension
+    // cc.NBTKeyGen(sk);
+    
+    //This is for winow based bootstrapping .... this requires power 2 NTRU dimension
+    cc.NBTKeyGenS(sk);
+
     std::cout << "Completed the key generation." << std::endl;
 
-    for (int i=0; i<10; i++){
+    for (int i=0; i<Enc_total; i++){
 
         // Sample Program: Step 3: Encryption
-        auto ct1 = cc.Encrypt(sk, m0);
+        auto ct1 = cc.Encrypt(sk, m1);
+        auto ct2 = cc.Encrypt(sk, m2);
+        
+        // LWEPlaintext result1;
+        // LWEPlaintext result2;
         // cc.Decrypt(sk, ct1, &result1);
-
-        auto ct2 = cc.Encrypt(sk, m1);
         // cc.Decrypt(sk, ct2, &result2);
+        // std::cout << "Result of enc/dec of.............................................................. ("<<m1<<" , "<<m2<<" )= "<<"( "<<result1<<" , "<<result2<<" )"<<std::endl;
 
+    
+        LWEPlaintext result;
         LWECiphertext ctAND1;
-
         // // Sample Program: Step 4: Evaluation
-        std::cout << "Start  the  gate bootstrapping " << std::endl;
-
+        // std::cout << "Start  the  gate bootstrapping " << std::endl;
         //Notice: We have only made specific modifications for NAND gates, and will add other gates in the future.
-        ctAND1 = cc.EvalBinGate(NAND, ct1, ct2);
+        auto start = high_resolution_clock::now();        
+        ctAND1 = cc.EvalBinGate(NAND, ct1, ct2);   
+        auto end = high_resolution_clock::now();
+        auto comp_time=duration_cast<microseconds>(end-start);
+        // std::cout<<"Time taken is:"<<comp_time.count()<<std::endl;
+        total_time=total_time + comp_time.count();
 
         cc.Decrypt(sk, ctAND1, &result);
 
         // std::cout << "Result of enc/dec of 1/0 is:"<<result1<<"/"<<result2<<std::endl;
-        std::cout << "Result of enc/dec of 1 NAND 0 is..........:"<<result<<std::endl;
+        std::cout << "Result of enc/dec of........................................................... ("<<m1<<" NAND "<<m2<<")=(0)--> "<<result<<std::endl;        
+        if (result)
+        {
+            std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
+            break;
+        }
+        
     }    
+    std::cout<<"Total computation time is:"<<(total_time/(1000*Enc_total))<<std::endl;    
     return 0;
 }

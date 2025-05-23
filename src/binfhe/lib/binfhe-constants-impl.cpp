@@ -169,6 +169,20 @@ std::ostream& operator<<(std::ostream& s, BINFHE_PARAMSET f) {
         case P192T:
             s << "P192T";
             break;
+
+        case STD128_LMKCDEY_LWR:
+            s << "STD128_LMKCDEY_LWR";
+            break;
+        case STD128_LMKCDEY_LWE:
+            s << "STD128_LMKCDEY_LWE";
+            break;
+        case P192G_LWE:
+            s << "P192G_LWE";
+            break;
+        case P192G_LWR:
+            s << "P192G_LWR";
+            break;                                    
+
         default:
             s << "UNKNOWN";
             break;
@@ -264,3 +278,67 @@ std::ostream& operator<<(std::ostream& s, BINGATE f) {
 }
 
 };  // namespace lbcrypto
+/*
+    NativeInteger temmp, temmpn,diff=0;
+    for (size_t i=0;i<n;i++){
+        temmp=b_vec[i].first;
+        if (temmp%2==0){
+            if(i+1<n){
+                temmpn = b_vec[i+1].first;
+                diff = temmpn - temmp;
+                b_vec[i].first =temmp + floor(diff/2) ;
+            }
+            if(b_vec[i-1].first==temmp-1){
+                b_vec[i].first=temmp-1;
+            }
+            else{
+                b_vec[i].first=temmp+1;
+            }            
+        }
+        else{
+            if(b_vec[i-1].first==temmp){ 
+                    b_vec[i].first=temmp;
+                }
+            else if (b_vec[i+1].first==temmp+1) {
+                    b_vec[i].first=temmp;
+            }
+            else if(b_vec[i-1].first==temmp-2){ 
+                    b_vec[i].first=temmp-2;
+                }
+            else if (b_vec[i+1].first==temmp+2) {
+                    b_vec[i].first=temmp+2;
+            }
+            else
+                b_vec[i].first=temmp;
+        }        
+    }
+
+    NativeInteger temmp;
+    for (size_t i=0;i<n;i++){
+        temmp=b_vec[i].first;
+        if (temmp%2==0){
+            if(b_vec[i-1].first==temmp-1){
+                b_vec[i].first=temmp-1;
+            }
+            else{
+                b_vec[i].first=temmp+1;
+            }            
+        }
+        else{
+            if(b_vec[i-1].first==temmp){ 
+                    b_vec[i].first=temmp;
+                }
+            else if (b_vec[i+1].first==temmp+1) {
+                    b_vec[i].first=temmp;
+            }
+            else if(b_vec[i-1].first==temmp-2){ 
+                    b_vec[i].first=temmp-2;
+                }
+            else if (b_vec[i+1].first==temmp+2) {
+                    b_vec[i].first=temmp+2;
+            }
+            else
+                b_vec[i].first=temmp;
+        }        
+    }
+    */

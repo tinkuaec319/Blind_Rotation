@@ -83,7 +83,8 @@ void Correctness_verification(int m0,int m1, int cyc_times)
         auto cc = BinFHEContext();
         cc.GenerateBinFHEContext(P128G, XZDDF);
         auto sk = cc.KeyGen();
-        cc.NBTKeyGen(sk);
+        cc.NBTKeyGenS(sk);
+        // cc.NBTKeyGen(sk);
         auto ct1 = cc.Encrypt(sk, m0);
         auto ct2 = cc.Encrypt(sk, m1);
         LWECiphertext ctAND1;

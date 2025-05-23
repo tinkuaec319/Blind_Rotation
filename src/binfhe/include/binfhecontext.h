@@ -159,7 +159,7 @@ public:
                             BINFHE_METHOD method = GINX, uint32_t numAutoKeys = 10);
 
     void GenerateBinFHEContext(BINFHE_PARAMSET set,//枚举变量
-     bool arbFunc, uint32_t logQ = 11, int64_t N = 0,
+     bool arbFunc, uint32_t logQ = 11, int64_t N = 0, uint32_t rq=16, uint32_t qp=16, uint32_t QP=16, 
                                BINFHE_METHOD method = GINX, bool timeOptimization = false);
 
 
@@ -314,6 +314,8 @@ public:
    */
     LWESwitchingKey KeySwitchGen(ConstLWEPrivateKey& sk, ConstLWEPrivateKey& skN) const;
 
+    LWESwitchingKey KeySwitchGenS(ConstLWEPrivateKey& sk, ConstLWEPrivateKey& skN) const;
+
     /**
    * Generates boostrapping keys
    *
@@ -322,6 +324,8 @@ public:
    */
     void BTKeyGen(ConstLWEPrivateKey& sk, KEYGEN_MODE keygenMode = SYM_ENCRYPT);
     void NBTKeyGen(ConstLWEPrivateKey& sk, KEYGEN_MODE keygenMode = SYM_ENCRYPT);//wkx
+
+    void NBTKeyGenS(ConstLWEPrivateKey& sk, KEYGEN_MODE keygenMode = SYM_ENCRYPT);//wkx
 
     /**
    * Loads bootstrapping keys in the context (typically after deserializing)
@@ -380,6 +384,15 @@ public:
    * @return a shared pointer to the resulting ciphertext
    */
     LWECiphertext EvalBinGate(BINGATE gate, const std::vector<LWECiphertext>& ctvector) const;
+
+    /**
+   * Evaluates a binary gate on vector of ciphertexts (calls bootstrapping as a subroutine)
+   *
+   * @param gate the gate; can be MAJORITY, AND3, OR3, AND4, OR4, or CMUX
+   * @param ctvector vector of ciphertexts
+   * @return a shared pointer to the resulting ciphertext
+   */
+    LWECiphertext EvalBinGateS(BINGATE gate, const std::vector<LWECiphertext>& ctvector) const;    
 
     /**
    * Bootstraps a ciphertext (without peforming any operation)

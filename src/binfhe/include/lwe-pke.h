@@ -200,7 +200,7 @@ public:
    * @param ctQ the input ciphertext
    * @return resulting ciphertext
    */
-    LWECiphertext ModSwitchLwr(NativeInteger q, uint32_t qp, ConstLWECiphertext& ctQ) const;
+    LWECiphertext ModSwitchLwr(uint32_t qp, NativeInteger q, ConstLWECiphertext& ctQ) const;
     
     /**
    * Generates a switching key to go from a secret key with (Q,N) to a secret
@@ -214,6 +214,9 @@ public:
     LWESwitchingKey KeySwitchGen(const std::shared_ptr<LWECryptoParams>& params, ConstLWEPrivateKey& sk,
                                  ConstLWEPrivateKey& skN) const;
 
+    LWESwitchingKey KeySwitchGenS(const std::shared_ptr<LWECryptoParams>& params, ConstLWEPrivateKey& sk,
+                                 ConstLWEPrivateKey& skN) const;
+
     /**
    * Switches ciphertext from (Q,N) to (Q,n)
    *
@@ -225,6 +228,8 @@ public:
     LWECiphertext KeySwitch(const std::shared_ptr<LWECryptoParams>& params, ConstLWESwitchingKey& K,
                             ConstLWECiphertext& ctQN) const;
 
+    LWECiphertext KeySwitchM(const std::shared_ptr<LWECryptoParams>& params, ConstLWESwitchingKey& K,
+                            ConstLWECiphertext& ctQN) const;
     /**
    * Embeds a plaintext bit without noise or encryption
    *

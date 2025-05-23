@@ -14,6 +14,7 @@ A C++ compiler, the NTL libraries.
 mkdir build
 cd build
 cmake -DWITH_NTL=ON .. 
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..
 make 
 ```
 2. Run the `boolean-xzddf` program in `build/bin/examples/binfhe`.

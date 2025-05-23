@@ -79,18 +79,18 @@
 
 namespace lbcrypto {
 
-void BinFHEContext::GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeInteger& q, const NativeInteger& Q,
-                                          double std, uint32_t baseKS, uint32_t baseG, uint32_t baseR,
+void BinFHEContext::GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeInteger& q, uint32_t rq, uint32_t qp, const NativeInteger& Q,
+                                          uint32_t QP, double std, uint32_t baseKS, uint32_t baseG, uint32_t baseR,
                                           SecretKeyDist keyDist, BINFHE_METHOD method, uint32_t numAutoKeys) {
     //用 std::make_shared 创建了 std::shared_ptr 的智能指针实例
-    auto lweparams = std::make_shared<LWECryptoParams>(n, N, q, Q, Q, std, baseKS);
+    auto lweparams = std::make_shared<LWECryptoParams>(n, N, q, rq, qp, Q, Q, QP, std, baseKS);
     auto rgswparams =
-        std::make_shared<RingGSWCryptoParams>(N, Q, q, baseG, baseR, method, std, keyDist, true, numAutoKeys);
+        std::make_shared<RingGSWCryptoParams>(N, Q, q, rq, qp, baseG, baseR, method, std, keyDist, true, numAutoKeys);
     m_params       = std::make_shared<BinFHECryptoParams>(lweparams, rgswparams);
     m_binfhescheme = std::make_shared<BinFHEScheme>(method);
 }
 
-void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uint32_t logQ, int64_t N,
+void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uint32_t logQ, int64_t N, uint32_t rq, uint32_t qp, uint32_t QP,
                                           BINFHE_METHOD method, bool timeOptimization) {
     if (GINX != method) {
         std::string errMsg("ERROR: CGGI is the only supported method");
@@ -141,8 +141,8 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     qKS <<= 5;
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
-    auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, 3.19, 32);
-    auto rgswparams = std::make_shared<RingGSWCryptoParams>(ringDim, Q, q, baseG, 23, method, 3.19, UNIFORM_TERNARY,
+    auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, rq, qp, Q, qKS, QP, 3.19, 32);
+    auto rgswparams = std::make_shared<RingGSWCryptoParams>(ringDim, Q, q, rq, qp, baseG, 23, method, 3.19, UNIFORM_TERNARY,
                                                             ((logQ != 11) && timeOptimization));
 
     m_params       = std::make_shared<BinFHECryptoParams>(lweparams, rgswparams);
@@ -157,7 +157,9 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
 void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, BINFHE_METHOD method) {
     enum { PRIME = 0 };  // value for modKS if you want to use the intermediate prime for modulus for key switching
     constexpr double STD_DEV = 3.19 ;
+    //this will be enabled for NTRU ciphertext only
     constexpr double STD_NTRU = 0.9;
+    // constexpr double STD_NTRU = 3;
     // clang-format off
 
     /*
@@ -166,41 +168,67 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, BINFHE_METHOD met
     const std::unordered_map<BINFHE_PARAMSET, BinFHEContextParams> paramsMap
     ({
         //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
-        { TOY,               { 27,     1024,          64,  512,   PRIME, STD_DEV,     25,    1 <<  9,  23,     9,  UNIFORM_TERNARY} },
-        { MEDIUM,            { 28,     2048,         422, 1024, 1 << 14, STD_DEV, 1 << 7,    1 << 10,  32,    10,  UNIFORM_TERNARY} },
-        { STD256,            { 29,     4096,         990, 2048, 1 << 14, STD_DEV, 1 << 7,    1 <<  8,  46,    10,  UNIFORM_TERNARY} },
-        { STD128Q,           { 25,     2048,         534, 1024, 1 << 14, STD_DEV,     32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
-        { STD128Q_LMKCDEY,   { 27,     2048,         448, 1024, 1 << 13, STD_DEV,     32,    1 <<  9,  32,    10,  GAUSSIAN       } },
-        { STD192Q,           { 35,     4096,         875, 1024, 1 << 15, STD_DEV,     32,    1 << 12,  32,    10,  UNIFORM_TERNARY} },
-        { STD256Q,           { 27,     4096,        1225, 1024, 1 << 16, STD_DEV,     16,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
-        { STD128_3,          { 27,     2048,         541, 1024, 1 << 15, STD_DEV,     32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
-        { STD128_3_LMKCDEY,  { 28,     2048,         485, 1024, 1 << 15, STD_DEV,     32,    1 << 10,  32,    10,  GAUSSIAN       } },
-        { STD128Q_3,         { 50,     4096,         575, 2048, 1 << 15, STD_DEV,     32,    1 << 25,  32,    10,  UNIFORM_TERNARY} },
-        { STD128Q_3_LMKCDEY, { 27,     2048,         524, 1024, 1 << 15, STD_DEV,     32,    1 <<  9,  32,    10,  GAUSSIAN       } },
-        { STD192Q_3,         { 34,     4096,         922, 2048, 1 << 16, STD_DEV,     16,    1 << 12,  32,    10,  UNIFORM_TERNARY} },
-        { STD256Q_3,         { 27,     4096,        1400, 4096, 1 << 16, STD_DEV,     21,    1 <<  6,  32,    10,  UNIFORM_TERNARY} },
-        { STD128_4,          { 27,     2048,         541, 2048, 1 << 15, STD_DEV,     32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
-        { STD128_4_LMKCDEY,  { 28,     2048,         522, 2048, 1 << 15, STD_DEV,     32,    1 << 10,  32,    10,  GAUSSIAN       } },
-        { STD128Q_4,         { 50,     4096,         647, 2048, 1 << 16, STD_DEV,     16,    1 << 25,  32,    10,  UNIFORM_TERNARY} },
-        { STD128Q_4_LMKCDEY, { 27,     2048,         524, 2048, 1 << 15, STD_DEV,     32,    1 <<  7,  32,    10,  GAUSSIAN       } },
-        { STD192Q_4,         { 34,     4096,         980, 2048, 1 << 17, STD_DEV,     16,    1 << 12,  32,    10,  UNIFORM_TERNARY} },
-        { STD256Q_4,         { 27,     4096,        1625, 4096, 1 << 21, STD_DEV,     16,    1 <<  6,  32,    10,  UNIFORM_TERNARY} },
-        { SIGNED_MOD_TEST,   { 28,     2048,         512, 1024,   PRIME, STD_DEV,     25,    1 <<  7,  23,    10,  UNIFORM_TERNARY} },
-        //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
-        { STD128_LMKCDEY,    { 28,     2048,         446, 1024, 1 << 13, STD_DEV, 1 << 5,    1 << 10,  32,    10,  GAUSSIAN       } },
-        { STD128_LMKCDEY_New,{ 28,     2048,         446, 1024, 1 << 13, STD_DEV, 1 << 5,    1 <<  7,  32,    10,  GAUSSIAN       } },
-        { STD128_AP,         { 27,     2048,         503, 1024, 1 << 14, STD_DEV, 1 << 5,    1 <<  9,  32,    10,  UNIFORM_TERNARY} },
-        { STD128,            { 27,     2048,         503, 1024, 1 << 14, STD_DEV, 1 << 5,    1 <<  9,  32,    10,  UNIFORM_TERNARY} },
-        //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
-        { P128T,             { 21,     2048,         512, 1024, 1 << 14, STD_NTRU,    32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
-        { P128G,             { 21,     2048,         446, 1024, 1 << 14, STD_NTRU,    32,    1 <<  7,  32,    10,  GAUSSIAN       } },
-        { P128T_2,           { 21,     2048,         512, 1024, 1 << 14, STD_NTRU,    32,    1 <<  6,  32,    10,  UNIFORM_TERNARY} },
-        { P128G_2,           { 21,     2048,         446, 1024, 1 << 14, STD_NTRU,    32,    1 <<  6,  32,    10,  GAUSSIAN       } },
-        //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
-        { STD192,            { 37,     4096,         805, 1024, 1 << 15, STD_DEV,     32,    1 << 13,  32,    10,  UNIFORM_TERNARY} },
-        //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
-        { P192T,             { 26,     4096,        1024, 1024, 1 << 17, STD_NTRU,    28,    1 <<  9,  32,    10,  UNIFORM_TERNARY} },
-        { P192G,             { 26,     4096,         805, 1024, 1 << 17, STD_NTRU,    28,    1 <<  9,  32,    10,  GAUSSIAN       } },
+        // { TOY,               { 27,     1024,          64,  512,   PRIME, STD_DEV,     25,    1 <<  9,  23,     9,  UNIFORM_TERNARY} },
+        // { MEDIUM,            { 28,     2048,         422, 1024, 1 << 14, STD_DEV, 1 << 7,    1 << 10,  32,    10,  UNIFORM_TERNARY} },
+        // { STD256,            { 29,     4096,         990, 2048, 1 << 14, STD_DEV, 1 << 7,    1 <<  8,  46,    10,  UNIFORM_TERNARY} },
+        // { STD128Q,           { 25,     2048,         534, 1024, 1 << 14, STD_DEV,     32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128Q_LMKCDEY,   { 27,     2048,         448, 1024, 1 << 13, STD_DEV,     32,    1 <<  9,  32,    10,  GAUSSIAN       } },
+        // { STD192Q,           { 35,     4096,         875, 1024, 1 << 15, STD_DEV,     32,    1 << 12,  32,    10,  UNIFORM_TERNARY} },
+        // { STD256Q,           { 27,     4096,        1225, 1024, 1 << 16, STD_DEV,     16,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128_3,          { 27,     2048,         541, 1024, 1 << 15, STD_DEV,     32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128_3_LMKCDEY,  { 28,     2048,         485, 1024, 1 << 15, STD_DEV,     32,    1 << 10,  32,    10,  GAUSSIAN       } },
+        // { STD128Q_3,         { 50,     4096,         575, 2048, 1 << 15, STD_DEV,     32,    1 << 25,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128Q_3_LMKCDEY, { 27,     2048,         524, 1024, 1 << 15, STD_DEV,     32,    1 <<  9,  32,    10,  GAUSSIAN       } },
+        // { STD192Q_3,         { 34,     4096,         922, 2048, 1 << 16, STD_DEV,     16,    1 << 12,  32,    10,  UNIFORM_TERNARY} },
+        // { STD256Q_3,         { 27,     4096,        1400, 4096, 1 << 16, STD_DEV,     21,    1 <<  6,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128_4,          { 27,     2048,         541, 2048, 1 << 15, STD_DEV,     32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128_4_LMKCDEY,  { 28,     2048,         522, 2048, 1 << 15, STD_DEV,     32,    1 << 10,  32,    10,  GAUSSIAN       } },
+        // { STD128Q_4,         { 50,     4096,         647, 2048, 1 << 16, STD_DEV,     16,    1 << 25,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128Q_4_LMKCDEY, { 27,     2048,         524, 2048, 1 << 15, STD_DEV,     32,    1 <<  7,  32,    10,  GAUSSIAN       } },
+        // { STD192Q_4,         { 34,     4096,         980, 2048, 1 << 17, STD_DEV,     16,    1 << 12,  32,    10,  UNIFORM_TERNARY} },
+        // { STD256Q_4,         { 27,     4096,        1625, 4096, 1 << 21, STD_DEV,     16,    1 <<  6,  32,    10,  UNIFORM_TERNARY} },
+        // { SIGNED_MOD_TEST,   { 28,     2048,         512, 1024,   PRIME, STD_DEV,     25,    1 <<  7,  23,    10,  UNIFORM_TERNARY} },
+        // //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
+        // { STD128_LMKCDEY,    { 28,     64,         10, 32, 1 << 13, STD_DEV, 1 << 5,    1 << 10,  32,    10,  GAUSSIAN       } },
+        // { STD128_LMKCDEY,    { 28,     2048,         446, 1024, 1 << 13, STD_DEV, 1 << 5,    1 << 10,  32,    10,  GAUSSIAN       } },
+        // { STD128_LMKCDEY_New,{ 28,     2048,         446, 1024, 1 << 13, STD_DEV, 1 << 5,    1 <<  7,  32,    10,  GAUSSIAN       } },
+        // { STD128_AP,         { 27,     2048,         503, 1024, 1 << 14, STD_DEV, 1 << 5,    1 <<  9,  32,    10,  UNIFORM_TERNARY} },
+        // { STD128,            { 27,     2048,         503, 1024, 1 << 14, STD_DEV, 1 << 5,    1 <<  9,  32,    10,  UNIFORM_TERNARY} },
+        // //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
+        // { P128T,             { 21,     2048,         512, 1024, 1 << 14, STD_NTRU,    32,    1 <<  7,  32,    10,  UNIFORM_TERNARY} },
+        // { P128G,             { 21,     2048,         446, 1024, 1 << 14, STD_NTRU,    32,    1 <<  7,  32,    10,  GAUSSIAN       } },
+        // { P128T_2,           { 21,     2048,         512, 1024, 1 << 14, STD_NTRU,    32,    1 <<  6,  32,    10,  UNIFORM_TERNARY} },
+        // { P128G_2,           { 21,     2048,         446, 1024, 1 << 14, STD_NTRU,    32,    1 <<  6,  32,    10,  GAUSSIAN       } },
+        // //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
+        // { STD192,            { 37,     4096,         805, 1024, 1 << 15, STD_DEV,     32,    1 << 13,  32,    10,  UNIFORM_TERNARY} },
+        //               numberBits|cyclOrder|latticeParam|    mod|   rq|   qp|  modKS|  qpmodKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
+        // { STD192,            { 37,     4096,         805,   1*1024,   1,   1, 1 << 15,   1,    STD_DEV,    32,    1 << 13,     32,    10,  UNIFORM_TERNARY} },
+        // //               numberBits|cyclOrder|latticeParam|  mod|   modKS|  stdDev| baseKS| gadgetBase| baseRK| numAutoKeys| keyDist
+        // { P192T,             { 26,     4096,        1024, 1024, 1 << 17, STD_NTRU,    28,    1 <<  9,  32,    10,  UNIFORM_TERNARY} },
+        // { P192G,             { 26,     4096,         805, 1024, 1 << 17, STD_NTRU,    28,    1 <<  9,  32,    10,  GAUSSIAN       } },
+ 
+        //               numberBits| cyclOrder| latticeParam|     mod|    rq|   qp|    modKS|  qpmodKS|  stdDev|  baseKS|  gadgetBase| baseRK| numAutoKeys|  keyDist
+        // { STD128_LMKCDEY,   { 28,      2048,       446,       2*512,    2,    2,   1 << 13,    2,     STD_DEV,    1<<5,   1 << 10,      32,     10,       GAUSSIAN  } },
+        //for checking in low dimension
+        // { STD128_LMKCDEY_LWR,   { 28,      64,           10,      2*64,    2,    2,    1<< 15,     2,    STD_DEV,  1 << 5,   1 << 10,      32,     3,       GAUSSIAN  } },        
+        // { STD128_LMKCDEY_LWE,   { 28,      64,           10,       128,    1,    1,    1<< 15,     1,    STD_DEV,  1 << 5,   1 << 10,      32,     3,       GAUSSIAN  } },        
+        //Actual dimensions
+        // { STD128_LMKCDEY_LWR, { 28,     32,        16,       16*64,      16,    16,    1<< 15,      16,    STD_DEV,  1 << 5,   1 << 10,      32,     10,       GAUSSIAN  } },        
+        // { STD128_LMKCDEY_LWE, { 28,     2048,        16,       16*64,      16,    16,    1<< 15,      16,    STD_DEV,  1 << 5,   1 << 10,      32,     10,       GAUSSIAN  } },
+        // { STD128_LMKCDEY_LWR, { 28,     2048,        446,      16*64,     16,   16,    1<< 13,     16,    STD_DEV,  1 << 5,   1 << 10,      32,     10,       GAUSSIAN  } },
+        //    { STD128_LMKCDEY_LWR, { 20,     256,          10,      16*16,    16,   16,    1<< 16,     16,    STD_DEV,  1 << 5,   1 << 10,      32,     3,       GAUSSIAN  } },        
+        { STD128_LMKCDEY_LWR, { 30,     2048,        446,      16*64,     16,   16,    1<< 16,     16,    STD_DEV,  1 << 5,   1 << 10,      32,     10,       GAUSSIAN  } },        
+        { STD128_LMKCDEY_LWE, { 28,     2048,        446,      1024,      1,    1,     1<< 13,     1,     STD_DEV,  1 << 5,   1 << 10,      32,     20,       GAUSSIAN  } },
+        { P192G_LWR,          { 30,     4096,        805,      16*128,    16,   16,   1 << 19,    16,     STD_NTRU,     28,   1 <<  9,      32,     10,       GAUSSIAN  } },
+        { P192G_LWE,          { 26,     4096,        805,      1*2048,    1,    1,    1 << 19,     1,     STD_NTRU,     28,   1 <<  9,      32,     10,       GAUSSIAN  } },
+        { P128G_LWR,          { 21,     2048,        465,       16*64,   16,   16,    1 << 15,    16,     STD_NTRU,     32,   1 <<  7,      32,     5,       GAUSSIAN  } },
+        { P128G_LWE,          { 21,     2048,        465,        1024,    1,    1,    1 << 14,     1,     STD_NTRU,     32,   1 <<  7,      32,     5,       GAUSSIAN  } },                
+        // { P192G,             { 26,      32,         12,        2*8,      2,    2,   1 << 17,    2,     STD_NTRU,    28,   1 << 18,      32,     5,        GAUSSIAN  } },        
+        // { P192G,             { 26,     4096,       805,       4*512,     4,    4,   1 << 19,    4,     STD_NTRU,    28,   1 <<  9,      32,     10,       GAUSSIAN  } },
+        // { P192G,             { 26,     4096,       805,       8*256,     8,    8,   1 << 19,    8,     STD_NTRU,    28,   1 <<  9,      32,     10,       GAUSSIAN  } },
+        
+        // { P192G,             { 26,     2048,         4,      16*128,    16,   16,   1 << 17,    16,    STD_NTRU,    28,   1 <<  9,      32,     10,       GAUSSIAN  } },           
+        
     });
     // clang-format on
 
@@ -212,29 +240,28 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, BINFHE_METHOD met
 
     BinFHEContextParams params = search->second;
     // intermediate prime
-    NativeInteger Q(
-        PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(params.numberBits, params.cyclOrder), params.cyclOrder));
+    NativeInteger Q(PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(params.numberBits, params.cyclOrder), params.cyclOrder));
 
     usint ringDim  = params.cyclOrder / 2;
     auto lweparams = (PRIME == params.modKS) ?
-                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, Q, Q,
-                                                           params.stdDev, params.baseKS, params.keyDist) :
-                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, Q, params.modKS,
-                                                           params.stdDev, params.baseKS, params.keyDist);
-    
+                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, params.rq, params.qp, Q, Q,
+                                                           params.qpmodKS ,params.stdDev, params.baseKS, params.keyDist) :
+                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, params.rq, params.qp, Q, params.modKS,
+                                                           params.qpmodKS ,params.stdDev, params.baseKS, params.keyDist);
     
     
     
     if(method == XZDDF)
     {
+        std::cout<<"Q is:"<<Q<<std::endl;
         auto vntruparams =
-        std::make_shared<VectorNTRUCryptoParams>(ringDim, Q, params.mod, params.gadgetBase, params.baseRK, method,
-                                              params.stdDev, params.keyDist, false, params.numAutoKeys);
+        std::make_shared<VectorNTRUCryptoParams>(ringDim, Q, params.mod, params.qp, params.gadgetBase, params.baseRK, method,
+                                              params.stdDev, params.keyDist, false, params.numAutoKeys);  
         m_params       = std::make_shared<BinFHECryptoParams>(lweparams, vntruparams);
         
     }else{
         auto rgswparams =
-        std::make_shared<RingGSWCryptoParams>(ringDim, Q, params.mod, params.gadgetBase, params.baseRK, method,
+        std::make_shared<RingGSWCryptoParams>(ringDim, Q, params.mod, params.rq, params.qp, params.gadgetBase, params.baseRK, method,
                                               params.stdDev, params.keyDist, false, params.numAutoKeys);
         m_params       = std::make_shared<BinFHECryptoParams>(lweparams, rgswparams);
     }//wkx
@@ -252,13 +279,13 @@ void BinFHEContext::GenerateBinFHEContext(const BinFHEContextParams& params, BIN
     usint ringDim = params.cyclOrder / 2;
 
     auto lweparams = (PRIME == params.modKS) ?
-                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, Q, Q,
-                                                           params.stdDev, params.baseKS, params.keyDist) :
-                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, Q, params.modKS,
-                                                           params.stdDev, params.baseKS, params.keyDist);
+                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, params.rq, params.qp, Q, Q,
+                                                           params.qpmodKS, params.stdDev, params.baseKS, params.keyDist) :
+                         std::make_shared<LWECryptoParams>(params.latticeParam, ringDim, params.mod, params.rq, params.qp, Q, params.modKS,
+                                                           params.qpmodKS, params.stdDev, params.baseKS, params.keyDist);
 
     auto rgswparams =
-        std::make_shared<RingGSWCryptoParams>(ringDim, Q, params.mod, params.gadgetBase, params.baseRK, method,
+        std::make_shared<RingGSWCryptoParams>(ringDim, Q, params.mod, params.rq, params.qp, params.gadgetBase, params.baseRK, method,
                                               params.stdDev, params.keyDist, false, params.numAutoKeys);
 
     m_params       = std::make_shared<BinFHECryptoParams>(lweparams, rgswparams);
@@ -348,6 +375,10 @@ LWESwitchingKey BinFHEContext::KeySwitchGen(ConstLWEPrivateKey& sk, ConstLWEPriv
     return m_LWEscheme->KeySwitchGen(m_params->GetLWEParams(), sk, skN);
 }
 
+LWESwitchingKey BinFHEContext::KeySwitchGenS(ConstLWEPrivateKey& sk, ConstLWEPrivateKey& skN) const {
+    return m_LWEscheme->KeySwitchGenS(m_params->GetLWEParams(), sk, skN);
+}
+
 void BinFHEContext::BTKeyGen(ConstLWEPrivateKey& sk, KEYGEN_MODE keygenMode) {
     auto& RGSWParams = m_params->GetRingGSWParams();
 
@@ -378,12 +409,17 @@ LWECiphertext BinFHEContext::EvalBinGate(const BINGATE gate, ConstLWECiphertext&
     auto& VNTRUParams = m_params->GetVectorNTRUParams();
 
     if(VNTRUParams != nullptr)
-    {   //需要改成m_NBTKey
-        //std::cout<<"EvalBinGate XZDDF"<<std::endl;
-        return m_binfhescheme->EvalBinGate(m_params, gate, m_NBTKey, ct1, ct2);
-    }else{
-        //std::cout<<"EvalBinGate AP or GINX"<<std::endl;
-        return m_binfhescheme->EvalBinGate(m_params, gate, m_BTKey, ct1, ct2);
+    {   //需要改成m_NBTKey ...This is for normal bootstrapping calling
+        // std::cout<<"I am from normal bootstrapping function"<<std::endl;
+        // return m_binfhescheme->EvalBinGate(m_params, gate, m_NBTKey, ct1, ct2); 
+
+        std::cout<<"I am from window style bootstrapping function"<<std::endl;   
+        return m_binfhescheme->EvalBinGateS(m_params, gate, m_NBTKey, ct1, ct2);
+    }
+    else{     
+        auto eval=m_binfhescheme->EvalBinGate(m_params, gate, m_BTKey, ct1, ct2);
+        // std::cout<<"Working fine after eval"<<std::endl;   
+        return eval;
     }
 }
 
@@ -482,6 +518,32 @@ void BinFHEContext::NBTKeyGen(ConstLWEPrivateKey& sk, KEYGEN_MODE keygenMode) {
     }
 }
 
+void BinFHEContext::NBTKeyGenS(ConstLWEPrivateKey& sk, KEYGEN_MODE keygenMode) {
+    //std::cout<<"xzddf btkeygen in binfhecontext.cpp"<<std::endl;
+    auto& VNTRUParams = m_params->GetVectorNTRUParams();
+
+    auto temp = VNTRUParams->GetBaseG();
+    //预先生成一些密钥
+    if (m_timeOptimization) {
+        auto gpowermap = VNTRUParams->GetGPowerMap();
+        for (std::map<uint32_t, std::vector<NativeInteger>>::iterator it = gpowermap.begin(); it != gpowermap.end();
+             ++it) {
+            VNTRUParams->Change_BaseG(it->first);
+            m_NBTKey_map[it->first] = m_binfhescheme->NKeyGenS(m_params, sk, keygenMode);
+            // m_NBTKey_map[it->first] = m_binfhescheme->NKeyGen(m_params, sk, keygenMode);
+        }
+        VNTRUParams->Change_BaseG(temp);
+    }
+
+    if (m_NBTKey_map.size() != 0) {
+        m_NBTKey = m_NBTKey_map[temp];
+    }
+    else {
+        m_NBTKey           = m_binfhescheme->NKeyGenS(m_params, sk, keygenMode);
+        // m_NBTKey           = m_binfhescheme->NKeyGen(m_params, sk, keygenMode);
+        m_NBTKey_map[temp] = m_NBTKey;
+    }
+}
 
 
 

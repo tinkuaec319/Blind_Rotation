@@ -62,6 +62,27 @@ public:
     {
         OPENFHE_THROW(not_implemented_error, "KeyGenACC operation not supported");
     }
+    /**
+   * Key merging corresponding to each set internal Ring GSW
+   *
+   * @param params a shared pointer to RingGSW scheme parameters
+   * @param SkeySq secret key square polynomial in the EVALUATION representation
+   * @param key encryption of the secret key
+   * @return a shared pointer pointing to the multiplication of keys
+   * Create RGSW ciphertext of the given RLWE' ciphertext
+   */
+    virtual RingGSWACCKey RLWEtoRGSW(const std::shared_ptr<RingGSWCryptoParams>& params,
+                                                     ConstRingGSWEvalKey& SkeySq, ConstRingGSWEvalKey& key) const
+    {
+        OPENFHE_THROW(not_implemented_error, "RLWEtoRGSW operation not supported");
+    }                                                     
+
+
+    virtual RingGSWEvalKey MulRLWEtoRGSW(const std::shared_ptr<RingGSWCryptoParams>& params,
+                                                ConstRingGSWEvalKey& ek, ConstRingGSWEvalKey& rgswkey0, ConstRingGSWEvalKey& rgswkey1) const
+    {
+        OPENFHE_THROW(not_implemented_error, "MulRLWEtoRGSW operation not supported");
+    }                                                                                                         
 
     /**
    * Main accumulator function used in bootstrapping
@@ -78,6 +99,19 @@ public:
         OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
     }
 
+    //虚拟函数，生成一个异常（not_implemented_error），以指示"ACC操作不受支持"。
+    virtual void EvalAccTS(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek,
+                         RLWECiphertext& acc, const NativeVector& a) const {
+            std::cout<<"run EvalAccTS in rgsw-acc.h"<<std::endl;
+        OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
+    }
+
+        //虚拟函数，生成一个异常（not_implemented_error），以指示"ACC操作不受支持"。
+    virtual void EvalAccTSS(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek,
+                         RLWECiphertext& acc, const NativeVector& a) const {
+            std::cout<<"run EvalAccTSS in rgsw-acc.h"<<std::endl;
+        OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
+    }
     /**
    * The signed digit decomposition which takes an RLWE ciphertext input and outputs a vector of its digits, i.e., an
    * RLWE' ciphertext

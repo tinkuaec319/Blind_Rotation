@@ -155,6 +155,15 @@ enum BINFHE_PARAMSET {
                         // optimize runtime by finding a non-power-of-two n
     P192G,              // more than 192 bits of security for classical computer attacks -
                         // optimize runtime by finding a non-power-of-two n (using Gaussian secrets)
+    STD128_LMKCDEY_LWR,
+    STD128_LMKCDEY_LWE,
+    P192G_LWE,          // more than 192 bits of security for classical computer attacks -
+                        // optimize runtime by finding a non-power-of-two n (using Gaussian secrets)
+    P192G_LWR,
+
+    P128G_LWE,          // more than 192 bits of security for classical computer attacks -
+                        // optimize runtime by finding a non-power-of-two n (using Gaussian secrets)
+    P128G_LWR,
 };
 std::ostream& operator<<(std::ostream& s, BINFHE_PARAMSET f);
 

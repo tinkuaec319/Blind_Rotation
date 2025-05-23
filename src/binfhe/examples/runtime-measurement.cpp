@@ -83,7 +83,8 @@ void Runtime(int cyc_times,BINFHE_METHOD method,BINFHE_PARAMSET set)
     int m1=1;
     if(method == XZDDF)
     {
-        cc.NBTKeyGen(sk);
+        cc.NBTKeyGenS(sk);//wkx
+        // cc.NBTKeyGen(sk);
     }else{
         cc.BTKeyGen(sk);
     }
