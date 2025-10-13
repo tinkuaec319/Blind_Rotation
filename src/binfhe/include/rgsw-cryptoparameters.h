@@ -67,12 +67,6 @@ private:
     // Modulus for the RingLWE scheme
     NativeInteger m_q{};
 
-    // ratio  r/q for the RingLWE scheme
-    uint32_t m_rq{};
-
-    // ratio  q/p for the RingLWE scheme
-    uint32_t m_qp{};
-
     // RingGSW/RingLWE方案的环维度
     // Ring dimension for the RingGSW/RingLWE scheme
     uint32_t m_N{};
@@ -149,8 +143,6 @@ public:
    * @param N ring dimension for RingGSW/RLWE used in bootstrapping
    * @param Q modulus for RingGSW/RLWE used in bootstrapping
    * @param q ciphertext modulus for additive LWE
-   * @param rq ciphertext modulus for additive LWE
-   * @param qp ciphertext modulus for additive LWE
    * @param baseG the gadget base used in the bootstrapping
    * @param baseR the base for the refreshing key
    * @param method bootstrapping method (DM or CGGI or LMKCDEY)
@@ -159,13 +151,11 @@ public:
    * @param signEval flag if sign evaluation is needed
    * @param numAutoKeys number of automorphism keys in LMKCDEY bootstrapping
    */
-    explicit RingGSWCryptoParams(uint32_t N, NativeInteger Q, NativeInteger q, uint32_t rq, uint32_t qp, uint32_t baseG, uint32_t baseR,
+    explicit RingGSWCryptoParams(uint32_t N, NativeInteger Q, NativeInteger q, uint32_t baseG, uint32_t baseR,
                                  BINFHE_METHOD method, double std, SecretKeyDist keyDist = UNIFORM_TERNARY,
                                  bool signEval = false, uint32_t numAutoKeys = 10)
         : m_Q(Q),
           m_q(q),
-          m_rq(rq),
-          m_qp(qp),
           m_N(N),
           m_baseG(baseG),
           m_baseR(baseR),
@@ -198,14 +188,6 @@ public:
 
     const NativeInteger& Getq() const {
         return m_q;
-    }
-
-    uint32_t Getrq() const {
-        return m_rq;
-    }
-
-    uint32_t Getqp() const {
-        return m_qp;
     }
 
     uint32_t GetBaseG() const {
@@ -265,7 +247,7 @@ public:
     }
 
     bool operator==(const RingGSWCryptoParams& other) const {
-        return m_N == other.m_N && m_Q == other.m_Q && m_rq == other.m_rq && m_qp == other.m_qp && m_baseR == other.m_baseR && m_baseG == other.m_baseG;
+        return m_N == other.m_N && m_Q == other.m_Q && m_baseR == other.m_baseR && m_baseG == other.m_baseG;
     }
 
     bool operator!=(const RingGSWCryptoParams& other) const {
@@ -277,8 +259,6 @@ public:
         ar(::cereal::make_nvp("bN", m_N));
         ar(::cereal::make_nvp("bQ", m_Q));
         ar(::cereal::make_nvp("bq", m_q));
-        ar(::cereal::make_nvp("bq", m_rq));
-        ar(::cereal::make_nvp("bq", m_qp));
         ar(::cereal::make_nvp("bR", m_baseR));
         ar(::cereal::make_nvp("bG", m_baseG));
         ar(::cereal::make_nvp("bmethod", m_method));
@@ -297,8 +277,6 @@ public:
         ar(::cereal::make_nvp("bN", m_N));
         ar(::cereal::make_nvp("bQ", m_Q));
         ar(::cereal::make_nvp("bq", m_q));
-        ar(::cereal::make_nvp("brq", m_rq));
-        ar(::cereal::make_nvp("bqp", m_qp));
         ar(::cereal::make_nvp("bR", m_baseR));
         ar(::cereal::make_nvp("bG", m_baseG));
         ar(::cereal::make_nvp("bmethod", m_method));

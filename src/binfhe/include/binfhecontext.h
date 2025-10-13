@@ -97,11 +97,8 @@ struct BinFHEContextParams {
     // for LWE crypto parameters
     usint latticeParam;
     usint mod;  // modulus for additive LWE 
-    usint rq;  // modulus for additive LWE 
-    usint qp;  // modulus for additive LWE 
     // modulus for key switching; if it is zero, then it is replaced with intermediate prime for LWE crypto parameters
-    usint modKS;       
-    usint qpmodKS;       
+    usint modKS;           
     double stdDev;    
     usint baseKS;  // base for key switching 
 
@@ -154,12 +151,12 @@ public:
     //使用默认生成的构造函数。  
     BinFHEContext() = default;
 
-    void GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeInteger& q, uint32_t rq, uint32_t qp, const NativeInteger& Q, uint32_t QP,
+    void GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeInteger& q, const NativeInteger& Q, 
                             double std, uint32_t baseKS, uint32_t baseG, uint32_t baseR, SecretKeyDist keyDist = UNIFORM_TERNARY,
                             BINFHE_METHOD method = GINX, uint32_t numAutoKeys = 10);
 
     void GenerateBinFHEContext(BINFHE_PARAMSET set,//枚举变量
-     bool arbFunc, uint32_t logQ = 11, int64_t N = 0, uint32_t rq=16, uint32_t qp=16, uint32_t QP=16, 
+     bool arbFunc, uint32_t logQ = 11, int64_t N = 0, 
                                BINFHE_METHOD method = GINX, bool timeOptimization = false);
 
 

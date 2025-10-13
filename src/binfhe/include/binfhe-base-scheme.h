@@ -214,6 +214,7 @@ public:
     LWECiphertext EvalBinGate(const std::shared_ptr<BinFHECryptoParams>& params, BINGATE gate, const RingGSWBTKey& EK,
                               ConstLWECiphertext& ct1, ConstLWECiphertext& ct2) const;
 
+
     /**
    * Evaluates a binary gate on a vector of ciphertexts (calls bootstrapping as a subroutine).
    * The evaluation of the gates in this function is specific to 3 input and 4 input

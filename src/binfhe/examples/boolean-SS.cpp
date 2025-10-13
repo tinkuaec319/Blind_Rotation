@@ -30,11 +30,12 @@
 //==================================================================================
 
 /*
-  Example for the FHEW scheme using the AP bootstrapping
+  Example for the FHEW-type scheme using the Proposed bootstrapping
  */
 
 #include "binfhecontext.h"
-
+#include <chrono>
+using namespace std::chrono;  
 using namespace lbcrypto;
 
 int main() {
@@ -66,13 +67,34 @@ int main() {
 
     int m1=1;
     int m2=1;
+    auto total_time=0;
+    int Enc_total=1000;
 
-    auto ct1 = cc.Encrypt(sk, m1);
-    auto ct2 = cc.Encrypt(sk, m2);
+    for (int i=0; i<Enc_total; i++){
 
-    // Sample Program: Step 4: Evaluation
+    // Sample Program: Step 3: Encryption
+        auto ct1 = cc.Encrypt(sk, m1);
+        auto ct2 = cc.Encrypt(sk, m2);
 
-    auto ctNAND = cc.EvalBinGate(NAND, ct1, ct2);
+        LWEPlaintext result;
+        LWECiphertext ctAND1;
+        // Sample Program: Step 4: Evaluation
+        auto start = high_resolution_clock::now();   
+        
+        ctAND1 = cc.EvalBinGate(NAND, ct1, ct2);
+
+        auto end = high_resolution_clock::now();
+        auto comp_time=duration_cast<microseconds>(end-start);
+
+        total_time=total_time + comp_time.count();
+        cc.Decrypt(sk, ctAND1, &result);   
+
+        if (result)
+        {
+            std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
+            break;
+        }   
+    }
 
     // // Compute (1 AND 1) = 1; Other binary gate options are OR, NAND, and NOR
     // auto ctAND1 = cc.EvalBinGate(AND, ct1, ct2);
@@ -88,13 +110,13 @@ int main() {
 
     // Sample Program: Step 5: Decryption
 
-    LWEPlaintext result;
+    //LWEPlaintext result;
 
     // cc.Decrypt(sk, ctResult, &result);
-    cc.Decrypt(sk, ctNAND, &result);
+    //cc.Decrypt(sk, ctNAND, &result);
 
     // std::cout << "Result of encrypted computation of (1 AND 1) OR (1 AND (NOT 1)) = " << result << std::endl;
-    std::cout << "Result of encrypted computation of ("<<m1<<" NAND "<<m2<<") = " << result << std::endl;
-
+    //std::cout << "Result of encrypted computation of ("<<m1<<" NAND "<<m2<<") = " << result << std::endl;
+    std::cout<<"Total computation time is:"<<(total_time/(1000*Enc_total))<<std::endl;    
     return 0;
 }

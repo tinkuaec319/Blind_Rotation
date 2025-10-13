@@ -141,7 +141,7 @@ public:
    * @param ct1 the ciphertext which will hold the sum
    * @param ct2 the ciphertext to add
    */
-    void EvalAddEq(uint32_t qp, LWECiphertext& ct1, ConstLWECiphertext& ct2) const;
+    void EvalAddEq(LWECiphertext& ct1, ConstLWECiphertext& ct2) const;
 
     /**
    * Adds the a constant to the ciphertext
@@ -149,7 +149,7 @@ public:
    * @param ct the ciphertext which will hold the sum
    * @param cnst the constant to add
    */
-    void EvalAddConstEq(uint32_t qp, LWECiphertext& ct, NativeInteger cnst) const;
+    void EvalAddConstEq(LWECiphertext& ct, NativeInteger cnst) const;
 
     /**
    * Subtracts the second ciphertext from the first ciphertext, the result is held in the first ciphertext
@@ -157,7 +157,7 @@ public:
    * @param ct1 the ciphertext which will hold the difference
    * @param ct2 the ciphertext to subtract
    */
-    void EvalSubEq(uint32_t qp, LWECiphertext& ct1, ConstLWECiphertext& ct2) const;
+    void EvalSubEq(LWECiphertext& ct1, ConstLWECiphertext& ct2) const;
 
     /**
    * Subtracts the second ciphertext from the first ciphertext, the result is held in the first ciphertext
@@ -165,7 +165,7 @@ public:
    * @param ct1 the ciphertext from which to subtract
    * @param ct2 the ciphertext to subtract, will hold the difference
    */
-    void EvalSubEq2(uint32_t qp, ConstLWECiphertext& ct1, LWECiphertext& ct2) const;
+    void EvalSubEq2(ConstLWECiphertext& ct1, LWECiphertext& ct2) const;
 
     /**
    * Subtracts the constant from the ciphertext
@@ -173,7 +173,7 @@ public:
    * @param ct1 the ciphertext which will hold the difference
    * @param ct2 the constant to subtract
    */
-    void EvalSubConstEq(uint32_t qp, LWECiphertext& ct, NativeInteger cnst) const;
+    void EvalSubConstEq(LWECiphertext& ct, NativeInteger cnst) const;
 
     /**
    * Multiplies a ciphertext by a constant
@@ -181,7 +181,7 @@ public:
    * @param ct1 the ciphertext which will hold the product
    * @param ct2 the constant to multiply by
    */
-    void EvalMultConstEq(uint32_t qp, LWECiphertext& ct, NativeInteger cnst) const;
+    void EvalMultConstEq(LWECiphertext& ct, NativeInteger cnst) const;
 
     /**
    * Changes an LWE ciphertext modulo Q into an LWE ciphertext modulo q
@@ -196,11 +196,10 @@ public:
    * Changes an LWE ciphertext modulo Q into an LWE ciphertext modulo q
    *
    * @param q modulus to
-   * @param qp of LWR scheme
    * @param ctQ the input ciphertext
    * @return resulting ciphertext
    */
-    LWECiphertext ModSwitchLwr(uint32_t qp, NativeInteger q, ConstLWECiphertext& ctQ) const;
+    LWECiphertext ModSwitchLwr(NativeInteger q, ConstLWECiphertext& ctQ) const;
     
     /**
    * Generates a switching key to go from a secret key with (Q,N) to a secret

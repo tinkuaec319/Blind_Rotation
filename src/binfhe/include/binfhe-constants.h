@@ -160,6 +160,9 @@ enum BINFHE_PARAMSET {
     P192G_LWE,          // more than 192 bits of security for classical computer attacks -
                         // optimize runtime by finding a non-power-of-two n (using Gaussian secrets)
     P192G_LWR,
+    
+    P128T_LWE,
+    P128T_LWR,
 
     P128G_LWE,          // more than 192 bits of security for classical computer attacks -
                         // optimize runtime by finding a non-power-of-two n (using Gaussian secrets)

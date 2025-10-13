@@ -82,32 +82,32 @@ int main() {
     // cc.GenerateBinFHEContext(P192G_LWE, XZDDF);
     // cc.GenerateBinFHEContext(P192G_LWR, XZDDF);
     // cc.GenerateBinFHEContext(P128G_LWR, XZDDF);    
-    cc.GenerateBinFHEContext(P128G_LWE, XZDDF);        
+    cc.GenerateBinFHEContext(P128G, XZDDF);        
 
     // Sample Program: Step 2: Key Generation
     auto sk = cc.KeyGen();
 
-    int n=cc.GetParams()->GetLWEParams()->Getn();
-    NativeInteger q=cc.GetParams()->GetLWEParams()->Getq();
-    std::cout<<"n,q is:"<<n<<"\t"<<q<<std::endl;
+    // int n=cc.GetParams()->GetLWEParams()->Getn();
+    // NativeInteger q=cc.GetParams()->GetLWEParams()->Getq();
+    // std::cout<<"n,q is:"<<n<<"\t"<<q<<std::endl;
     
     //Save LWE secret key....
     //write NTRU secret key into a file
-    std::ofstream outputFile("LWE_Secret_key.txt");  // Open/create a file named "test.txt" for writing
-    if (outputFile.is_open()) {  // Check if the file was successfully opened
-        // Write some text into the file
-        for (int i=0; i<n ; i++)
-        {
-            outputFile << sk->GetElement()[i] <<std::endl;
-        }
-    }
+    // std::ofstream outputFile("LWE_Secret_key.txt");  // Open/create a file named "test.txt" for writing
+    // if (outputFile.is_open()) {  // Check if the file was successfully opened
+    //     // Write some text into the file
+    //     for (int i=0; i<n ; i++)
+    //     {
+    //         outputFile << sk->GetElement()[i] <<std::endl;
+    //     }
+    // }
     // Close the file
-    outputFile.close();  // Close the file after writing
+    // outputFile.close();  // Close the file after writing
 
     int m1=1;
     int m2=1;
     auto total_time=0;
-    int Enc_total=100;
+    int Enc_total=1000;
 
     // Generate the bootstrapping keys (refresh and switching keys)
     std::cout << "Generating the bootstrapping keys..." << std::endl;
@@ -148,12 +148,12 @@ int main() {
         cc.Decrypt(sk, ctAND1, &result);
 
         // std::cout << "Result of enc/dec of 1/0 is:"<<result1<<"/"<<result2<<std::endl;
-        std::cout << "Result of enc/dec of........................................................... ("<<m1<<" NAND "<<m2<<")=(0)--> "<<result<<std::endl;        
-        if (result)
-        {
-            std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
-            break;
-        }
+        // std::cout << "Result of enc/dec of........................................................... ("<<m1<<" NAND "<<m2<<")=(0)--> "<<result<<std::endl;        
+        // if (result)
+        // {
+        //     std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
+        //     break;
+        // }
         
     }    
     std::cout<<"Total computation time is:"<<(total_time/(1000*Enc_total))<<std::endl;    

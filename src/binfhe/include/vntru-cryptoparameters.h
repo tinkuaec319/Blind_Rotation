@@ -97,8 +97,6 @@ private:
 
     NativeInteger m_q{};
 
-    uint32_t m_qp{};
-
     uint32_t m_N{};
 
     uint32_t m_baseG{};
@@ -130,12 +128,11 @@ private:
     uint32_t m_numAutoKeys{};
 public:
     VectorNTRUCryptoParams() = default;
-     explicit VectorNTRUCryptoParams(uint32_t N, NativeInteger Q, NativeInteger q, uint32_t qp, uint32_t baseG, uint32_t baseR,
+     explicit VectorNTRUCryptoParams(uint32_t N, NativeInteger Q, NativeInteger q, uint32_t baseG, uint32_t baseR,
                                  BINFHE_METHOD method, double std, SecretKeyDist keyDist = UNIFORM_TERNARY,
                                  bool signEval = false, uint32_t numAutoKeys = 10)
         : m_Q(Q),
           m_q(q),
-          m_qp(qp),
           m_N(N),
           m_baseG(baseG),
           m_baseR(baseR),
@@ -164,10 +161,6 @@ public:
 
     const NativeInteger& Getq() const {
         return m_q;
-    }
-
-    uint32_t Getqp() const {
-        return m_qp;
     }
 
     uint32_t GetBaseG() const {
@@ -239,8 +232,7 @@ public:
     void save(Archive& ar, std::uint32_t const version) const {
         ar(::cereal::make_nvp("bN", m_N));
         ar(::cereal::make_nvp("bQ", m_Q));
-        ar(::cereal::make_nvp("bq", m_q));
-        ar(::cereal::make_nvp("bqp", m_qp));        
+        ar(::cereal::make_nvp("bq", m_q));      
         ar(::cereal::make_nvp("bR", m_baseR));
         ar(::cereal::make_nvp("bG", m_baseG));
         ar(::cereal::make_nvp("bmethod", m_method));
@@ -259,7 +251,6 @@ public:
         ar(::cereal::make_nvp("bN", m_N));
         ar(::cereal::make_nvp("bQ", m_Q));
         ar(::cereal::make_nvp("bq", m_q));
-        ar(::cereal::make_nvp("bqp", m_qp));
         ar(::cereal::make_nvp("bR", m_baseR));
         ar(::cereal::make_nvp("bG", m_baseG));
         ar(::cereal::make_nvp("bmethod", m_method));

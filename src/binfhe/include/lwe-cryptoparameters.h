@@ -51,13 +51,10 @@ class LWECryptoParams : public Serializable {
 private:
     // modulus for the additive LWE scheme
     NativeInteger m_q{};
-    uint32_t m_rq{};
-    uint32_t m_qp{};
     // modulus for the RingGSW/RingLWE scheme
     NativeInteger m_Q{};
     // modulus for key-switching
     NativeInteger m_qKS{};
-    uint32_t m_qpKS{};
     // lattice parameter for the additive LWE scheme
     uint32_t m_n{};
     // ring dimension for RingGSW/RingLWE scheme
@@ -88,10 +85,10 @@ public:
    * @param keyDist the key distribution
    */
     //explicit 可以有效地防止隐式转换带来的意外结果，提高代码的可读性和安全性。
-    explicit LWECryptoParams(uint32_t n, uint32_t N, const NativeInteger& q, uint32_t rq, uint32_t qp, const NativeInteger& Q,
-                             const NativeInteger& q_KS, uint32_t qp_KS, double std, uint32_t baseKS,
+    explicit LWECryptoParams(uint32_t n, uint32_t N, const NativeInteger& q, const NativeInteger& Q,
+                             const NativeInteger& q_KS, double std, uint32_t baseKS,
                              SecretKeyDist keyDist = UNIFORM_TERNARY)
-        : m_q(q), m_rq(rq), m_qp(qp), m_Q(Q), m_qKS(q_KS), m_qpKS(qp_KS), m_n(n), m_N(N), m_baseKS(baseKS), m_keyDist(keyDist) //成员变量初始化
+        : m_q(q), m_Q(Q), m_qKS(q_KS), m_n(n), m_N(N), m_baseKS(baseKS), m_keyDist(keyDist) //成员变量初始化
     {
         if(!m_n)
             OPENFHE_THROW(config_error, "m_n (lattice parameter) can not be zero");
@@ -99,16 +96,10 @@ public:
             OPENFHE_THROW(config_error, "m_N (ring dimension) can not be zero");
         if(!m_q)
             OPENFHE_THROW(config_error, "cipher modulus q can not be zero");
-        if(!m_rq)
-            OPENFHE_THROW(config_error, "ratio of rq can not be zero");
-        if(!m_qp)
-            OPENFHE_THROW(config_error, "ratio of qp can not be zero");
         if(!m_Q)
             OPENFHE_THROW(config_error, "m_Q (modulus for RingGSW/RLWE) can not be zero");
         if(!m_qKS)
             OPENFHE_THROW(config_error, "q_KS (modulus for key switching) can not be zero");
-        if(!m_qpKS)
-            OPENFHE_THROW(config_error, "ratio of qpKS can not be zero");
         if(!m_baseKS)
             OPENFHE_THROW(config_error, "m_baseKS (the base used for key switching) can not be zero");
         if (m_Q.GetMSB() > MAX_MODULUS_SIZE)
@@ -120,10 +111,7 @@ public:
     // TODO: add m_qKS, m_ks_dgg, and m_keyDist to copy/move operations?
     LWECryptoParams(const LWECryptoParams& rhs)
         : m_q(rhs.m_q),
-          m_rq(rhs.m_rq),
-          m_qp(rhs.m_qp),
           m_Q(rhs.m_Q),          
-          // m_qKS(rhs.m_qKS),
           m_n(rhs.m_n),
           m_N(rhs.m_N),
           m_baseKS(rhs.m_baseKS) 
@@ -133,8 +121,6 @@ public:
     }
     LWECryptoParams(LWECryptoParams&& rhs) noexcept
         : m_q(std::move(rhs.m_q)),
-          m_rq(rhs.m_rq),
-          m_qp(rhs.m_qp),
           m_Q(std::move(rhs.m_Q)),          
           // m_qKS(std::move(rhs.m_qKS)),
           m_n(rhs.m_n),
@@ -147,8 +133,6 @@ public:
 
     LWECryptoParams& operator=(const LWECryptoParams& rhs) {
         this->m_q  = rhs.m_q;
-        this->m_rq = rhs.m_rq;
-        this->m_qp = rhs.m_qp;
         this->m_Q  = rhs.m_Q;
         // this->m_qKS    = rhs.m_qKS;
         this->m_n      = rhs.m_n;
@@ -161,8 +145,6 @@ public:
 
     LWECryptoParams& operator=(LWECryptoParams&& rhs) noexcept {
         this->m_q = std::move(rhs.m_q);
-        this->m_rq = rhs.m_rq;
-        this->m_qp = rhs.m_qp;
         this->m_Q = std::move(rhs.m_Q);
         // this->m_qKS    = std::move(rhs.m_qKS);
         this->m_n      = rhs.m_n;
@@ -185,24 +167,12 @@ public:
         return m_q;
     }
 
-    uint32_t Getrq() const {
-        return m_rq;
-    }
-
-    uint32_t Getqp() const {
-        return m_qp;
-    }
-
     const NativeInteger& GetQ() const {
         return m_Q;
     }
 
     const NativeInteger& GetqKS() const {
         return m_qKS;
-    }
-
-    uint32_t GetqpKS() const {
-        return m_qpKS;
     }
 
     uint32_t GetBaseKS() const {
@@ -222,7 +192,7 @@ public:
     }
 
     bool operator==(const LWECryptoParams& other) const {
-        return m_n == other.m_n && m_rq == other.m_rq  && m_qp == other.m_qp && m_N == other.m_N && m_q == other.m_q && m_Q == other.m_Q &&
+        return m_n == other.m_n && m_N == other.m_N && m_q == other.m_q && m_Q == other.m_Q &&
                m_dgg.GetStd() == other.m_dgg.GetStd() && m_baseKS == other.m_baseKS;
     }
 
@@ -234,12 +204,9 @@ public:
     void save(Archive& ar, std::uint32_t const version) const {
         ar(::cereal::make_nvp("n", m_n));
         ar(::cereal::make_nvp("N", m_N));
-        ar(::cereal::make_nvp("q", m_q));
-        ar(::cereal::make_nvp("rq", m_rq));
-        ar(::cereal::make_nvp("qp", m_qp));                
+        ar(::cereal::make_nvp("q", m_q));               
         ar(::cereal::make_nvp("Q", m_Q));
-        ar(::cereal::make_nvp("qKS", m_qKS));
-        ar(::cereal::make_nvp("qpKS", m_qpKS));        
+        ar(::cereal::make_nvp("qKS", m_qKS));      
         ar(::cereal::make_nvp("sigma", m_dgg.GetStd()));
         ar(::cereal::make_nvp("sigmaKS", m_ks_dgg.GetStd()));
         ar(::cereal::make_nvp("bKS", m_baseKS));
@@ -254,12 +221,9 @@ public:
 
         ar(::cereal::make_nvp("n", m_n));
         ar(::cereal::make_nvp("N", m_N));
-        ar(::cereal::make_nvp("q", m_q));
-        ar(::cereal::make_nvp("rq", m_rq));        
-        ar(::cereal::make_nvp("qp", m_qp));                
+        ar(::cereal::make_nvp("q", m_q));              
         ar(::cereal::make_nvp("Q", m_Q));
-        ar(::cereal::make_nvp("qKS", m_qKS));
-        ar(::cereal::make_nvp("qpKS", m_qpKS));        
+        ar(::cereal::make_nvp("qKS", m_qKS));      
         double sigma = 0;
         ar(::cereal::make_nvp("sigma", sigma));
         double sigmaKS = 0;

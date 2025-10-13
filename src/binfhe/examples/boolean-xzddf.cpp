@@ -71,84 +71,58 @@
 //==================================================================================
 
 #include "binfhecontext.h"
-
+using namespace std::chrono;  
 using namespace lbcrypto;
 
 int main() {
     // Sample Program: Step 1: Set CryptoContext
     auto cc = BinFHEContext();
 
-    cc.GenerateBinFHEContext(P192G, XZDDF);
+    cc.GenerateBinFHEContext(P128G, XZDDF);
 
     // Sample Program: Step 2: Key Generation
     auto sk = cc.KeyGen();
-    int m0=0;
-    int m1=1;
-    LWEPlaintext result1; //, result1, result;  
-    LWECiphertext ctAND1;
 
-    // LWECiphertext ctnot1;
-    // LWECiphertext ctnot2;
     // Generate the bootstrapping keys (refresh and switching keys)
-    // std::cout << "Generating the bootstrapping keys..." << std::endl;
+    std::cout << "Generating the bootstrapping keys..." << std::endl;
     cc.NBTKeyGen(sk);
-    NativeVector s   = sk->GetElement();
-    // NativeInteger q  = cc.GetParams()->GetLWEParams()->Getq();
-    // NativeInteger n  = cc.GetParams()->GetLWEParams()->Getn();
-    // NativeInteger q_ks  = cc.GetParams()->GetLWEParams()->GetqKS();
-    // // std::cout<<"q is:"<<q<<std::endl;
-    // write secret key into a file
 
-    // //write NTRU secret key into a file
-    // std::ofstream outputFile1("LWE_Secret_key1.txt");  // Open/create a file named "test.txt" for writing
-    // if (outputFile1.is_open()) {  // Check if the file was successfully opened
-    //     // Write some text into the file
-    //     for (uint32_t i=0; i<n; i++)
-    //     {
-    //         outputFile1 << (s[i]+q_ks)%q_ks <<std::endl;
-    //     }
-    // }
-    // std::ofstream outputFile2("LWE_Secret_key2.txt");  // Open/create a file named "test.txt" for writing
-    // if (outputFile2.is_open()) {  // Check if the file was successfully opened
-    //     // Write some text into the file
-    //     for (uint32_t i=0; i<n; i++)
-    //     {
-    //         outputFile2 << (s[i]+q) % q <<std::endl;
-    //     }
-    // }
+    std::cout << "Completed the key generation." << std::endl;  
 
-    // std::cout << "Completed the key generation." << std::endl;
+    int m1=1;
+    int m2=1;
+    auto total_time=0;
+    int Enc_total=1000;
 
-    for (int i=0; i<10; i++){
+    for (int i=0; i<Enc_total; i++){
 
         // Sample Program: Step 3: Encryption
-        auto ct1 = cc.Encrypt(sk, m0);
-        auto ct2 = cc.Encrypt(sk, m1);
-
-        // ctnot1 =cc.EvalNOT(ct1);
-        // ctnot2 =cc.EvalNOT(ct2);
-
-        // cc.Decrypt(sk, ct1, &result1);
-        // cc.Decrypt(sk, ctnot1, &result1);
-        // cc.Decrypt(sk, ctnot2, &result2);
-
-        // cc.Decrypt(sk, ctnot2, &result2);
-
-        // std::cout << "Result of not computation of encrypted computation of (0,1) is :("<<result1<<" , " <<result2<<" ) "<<std::endl;
-        // m0<<" NAND "<<m1<<" ) = " << result << std::endl;
-
+        auto ct1 = cc.Encrypt(sk, m1);
+        auto ct2 = cc.Encrypt(sk, m2);
+    
+        LWEPlaintext result;
+        LWECiphertext ctAND1;
         // Sample Program: Step 4: Evaluation
-        // std::cout << "...................................Start  the  gate bootstrapping................................... " << std::endl;
-
+        // std::cout << "Start  the  gate bootstrapping " << std::endl;
         //Notice: We have only made specific modifications for NAND gates, and will add other gates in the future.
-        ctAND1 = cc.EvalBinGate(NAND, ct1, ct2);
-        cc.Decrypt(sk, ctAND1, &result1);
-        // cc.m_NBTKey
-        // NativeInteger res = cc.EvalBinGate(NAND, ct1, ct2);
+        auto start = high_resolution_clock::now();        
+        ctAND1 = cc.EvalBinGate(NAND, ct1, ct2);   
+        auto end = high_resolution_clock::now();
+        auto comp_time=duration_cast<microseconds>(end-start);
+
+        total_time=total_time + comp_time.count();
+
+        cc.Decrypt(sk, ctAND1, &result);
+
+        // std::cout << "Result of enc/dec of 1/0 is:"<<result1<<"/"<<result2<<std::endl;
+        //std::cout << "Result of enc/dec of........................................................... ("<<m1<<" NAND "<<m2<<")=(0)--> "<<result<<std::endl;        
+        if (result)
+        {
+            std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
+            break;
+        }
         
-        
-        std::cout << "Result of encrypted computation of ( "<<m0<<" NAND "<<m1<<" ) = " << result1 << std::endl;
-        // std::cout << "...................................end  the  gate bootstrapping................................... " << std::endl;
     }    
+    std::cout<<"Total computation time is:"<<(total_time/(1000*Enc_total))<<std::endl;    
     return 0;
 }

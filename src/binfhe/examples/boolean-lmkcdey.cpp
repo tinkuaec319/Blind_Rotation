@@ -44,30 +44,12 @@ int main() {
     auto cc = BinFHEContext();
 
     // We use the STD128 setting optimized for the LMKCDEY mode.
-    cc.GenerateBinFHEContext(STD128_LMKCDEY_LWR, LMKCDEY);
-    // cc.GenerateBinFHEContext(STD128_LMKCDEY_LWE, LMKCDEY);
+    cc.GenerateBinFHEContext(STD128_LMKCDEY, LMKCDEY);
 
     // Sample Program: Step 2: Key Generation
 
     // Generate the secret key
     auto sk = cc.KeyGen();
-
-    int n=cc.GetParams()->GetLWEParams()->Getn();
-    NativeInteger q=cc.GetParams()->GetLWEParams()->Getq();
-    std::cout<<"n,q is:"<<n<<"\t"<<q<<std::endl;
-    
-    //Save LWE secret key....
-    //write NTRU secret key into a file
-    std::ofstream outputFile("LWE_Secret_key_base.txt");  // Open/create a file named "test.txt" for writing
-    if (outputFile.is_open()) {  // Check if the file was successfully opened
-        // Write some text into the file
-        for (int i=0; i<n ; i++)
-        {
-            outputFile << sk->GetElement()[i] <<std::endl;
-        }
-    }
-    // Close the file
-    outputFile.close();  // Close the file after writing
 
     std::cout << "Generating the bootstrapping keys..." << std::endl;
 
@@ -79,7 +61,7 @@ int main() {
     // Sample Program: Step 3: Encryption
 
 
-    int m1=1;
+    int m1=0;
     int m2=1;
 
     // Encrypt two ciphertexts representing Boolean True (1)
@@ -87,13 +69,11 @@ int main() {
     // If you wish to get a fresh encryption without bootstrapping, write
     // auto   ct1 = cc.Encrypt(sk, 1, FRESH);
     auto total_time=0;
-    int Enc_total=1000;
+    int Enc_total=500;
 
     for (int i=0; i<Enc_total; i++){
       auto ct1 = cc.Encrypt(sk, m1);
       auto ct2 = cc.Encrypt(sk, m2);
-      // std::cout<<"ct1->GetA()"<<ct1->GetA()<<std::endl;
-      // std::cout<<"ct1->GetB()"<<ct1->GetB()<<std::endl;
 
       // Sample Program: Step 4: Evaluation
       auto start = high_resolution_clock::now();
@@ -102,6 +82,7 @@ int main() {
       auto comp_time=duration_cast<microseconds>(end-start);
       // std::cout<<"Time taken is:"<<comp_time.count()<<std::endl;
       total_time=total_time + comp_time.count();
+    }
       /* 
       // Compute (1 AND 1) = 1; Other binary gate options are OR, NAND, and NOR
       auto ctAND1 = cc.EvalBinGate(AND, ct1, ct2);
@@ -123,12 +104,12 @@ int main() {
       std::cout << "Result of encrypted computation of (1 AND 1) OR (1 AND (NOT 1)) = " << result << std::endl;
       */
 
-      LWEPlaintext result;
-      cc.Decrypt(sk, ctAND1, &result);
+      //LWEPlaintext result;
+      //cc.Decrypt(sk, ctAND1, &result);
 
-      // std::cout << "Result of enc/dec of..............................................................("<<m1<<" NAND "<<m2<<")=(0)--> "<<result<<std::endl;
-      std::cout << "Result of enc/dec of..............................................................("<<m1<<" NAND "<<m2<<"):(0)--> "<<result<<std::endl;
-    }
+      //std::cout << "Result of enc/dec of..............................................................("<<m1<<" NAND "<<m2<<")=(0)--> "<<result<<std::endl;
+      //std::cout << "Result of enc/dec of..............................................................("<<m1<<" NAND "<<m2<<"):(0)--> "<<result<<std::endl;
+    
     std::cout<<"Total computation time is:"<<(total_time/(1000*Enc_total))<<std::endl;
     return 0;
 }
