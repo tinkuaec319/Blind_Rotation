@@ -68,7 +68,7 @@ public:
     void EvalAcc(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek, RLWECiphertext& acc,
                  const NativeVector& a) const override;
                 
-        /**
+    /**
    * Main accumulator function used in bootstrapping - LMKCDEY variant with reduced acc key switching
    *
    * @param params a shared pointer to RingGSW scheme parameters
@@ -77,6 +77,17 @@ public:
    * @param a value to update the accumulator with
    */
     void EvalAccTS(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek, RLWECiphertext& acc,
+                 const NativeVector& a) const override;
+
+   /*
+   * Main accumulator function used in bootstrapping - LMKCDEY variant with reduced acc key switching
+   *
+   * @param params a shared pointer to RingGSW scheme parameters
+   * @param ek the accumulator key
+   * @param acc previous value of the accumulator
+   * @param a value to update the accumulator with
+   */
+    void EvalAccTSW(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek, RLWECiphertext& acc,
                  const NativeVector& a) const override;
 
    /* 

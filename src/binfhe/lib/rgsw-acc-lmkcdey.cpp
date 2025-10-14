@@ -687,6 +687,88 @@ void RingGSWAccumulatorLMKCDEY::EvalAcc(const std::shared_ptr<RingGSWCryptoParam
     }
 }
 
+//Implementation of LEE et al. paper
+void RingGSWAccumulatorLMKCDEY::EvalAccTSW(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek,
+                                        RLWECiphertext& acc, const NativeVector& a) const {
+    //please check keys before running this program...where are the aut keys are stored.                                            
+    // assume a is all-odd ciphertext (using round-to-odd technique)
+    size_t n             = a.GetLength();
+    uint32_t Nh          = params->GetN() / 2;
+    uint32_t M           = 2 * params->GetN();
+    uint32_t numAutoKeys = params->GetNumAutoKeys();
+
+    NativeInteger MNative(M);
+
+    auto logGen = params->GetLogGen();
+   std::unordered_map<int32_t, std::vector<int32_t>> permuteMap;
+
+    for (size_t i = 0; i < n; i++) {  // put ail a_i in the permuteMap
+        // make it odd; round-to-odd(https://eprint.iacr.org/2022/198) will improve error.
+        int32_t aIOdd = NativeInteger(0).ModSubFast(a[i], MNative).ConvertToInt<uint32_t>() | 0x1;
+        int32_t index = logGen[aIOdd];
+        // std::cout<<" aIOdd and index are:"<<aIOdd<<"\t"<<index<<std::endl;
+        if (permuteMap.find(index) == permuteMap.end()) {
+            std::vector<int32_t> indexVec;
+            permuteMap[index] = indexVec;
+        }
+        auto& indexVec = permuteMap[index];
+        indexVec.push_back(i);
+    }
+
+    NativeInteger gen(5);
+    uint32_t genInt       = 5;
+    uint32_t nSkips       = 0;
+    
+    acc->GetElements()[1] = (acc->GetElements()[1]).AutomorphismTransform(M - genInt);
+    
+    // for a_j = -5^i
+    for (uint32_t i = Nh - 1; i > 0; i--) {
+        if (permuteMap.find(-i) != permuteMap.end()) {
+            if (nSkips != 0) {  // Rotation by 5^nSkips
+                Automorphism(params, gen.ModExp(nSkips, M), (*ek)[0][2][nSkips], acc);
+                nSkips = 0;
+            }
+            auto& indexVec = permuteMap[-i];
+            for (size_t j = 0; j < indexVec.size(); j++) {
+                AddToAccLMKCDEY(params, (*ek)[0][0][indexVec[j]], acc);
+            }
+        }
+        if (permuteMap.find(i) != permuteMap.end()) {
+            if (nSkips != 0) {  // Rotation by 5^nSkips
+                Automorphism(params, gen.ModExp(nSkips, M), (*ek)[0][2][nSkips], acc);
+                nSkips = 0;
+            }
+
+            auto& indexVec = permuteMap[i];
+            for (size_t j = 0; j < indexVec.size(); j++) {
+                AddToAccLMKCDEY(params, (*ek)[0][1][indexVec[j]], acc);
+            }
+        }
+        nSkips++;
+
+        if (nSkips == numAutoKeys || i == 1) {
+            Automorphism(params, gen.ModExp(nSkips, M), (*ek)[0][2][nSkips], acc);
+            nSkips = 0;
+        }
+    }
+
+    // for -1
+    if (permuteMap.find(M) != permuteMap.end()) {
+        auto& indexVec = permuteMap[M];
+        for (size_t j = 0; j < indexVec.size(); j++) {
+            AddToAccLMKCDEY(params, (*ek)[0][0][indexVec[j]], acc);
+        }
+    }
+
+    // for 0
+    if (permuteMap.find(0) != permuteMap.end()) {
+        auto& indexVec = permuteMap[0];
+        for (size_t j = 0; j < indexVec.size(); j++) {
+            AddToAccLMKCDEY(params, (*ek)[0][0][indexVec[j]], acc);
+        }
+    }
+}
+
 // Encryption as described in Section 5 of https://eprint.iacr.org/2022/198
 // Same as KeyGenAP, but only for X^{s_i}
 // skNTT corresponds to the secret key z

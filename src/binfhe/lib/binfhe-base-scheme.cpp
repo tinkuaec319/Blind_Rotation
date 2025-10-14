@@ -1006,6 +1006,7 @@ RLWECiphertext BinFHEScheme::BootstrapGateCore(const std::shared_ptr<BinFHECrypt
     
     //This function should be called if the positive and negative sets are merged together to reduce number of key switch operations (Li et al.).
     // ACCscheme->EvalAccTS(RGSWParams, ek, acc, ct->GetA());
+    // ACCscheme->EvalAccTSW(RGSWParams, ek, acc, ct->GetA());
     
     //This function should be called bootstrappin key is merged with key switch key to reduce number of key switch operations (Proposed Technique)
     // ACCscheme->EvalAccTSS(RGSWParams, ek, acc, ct->GetA());

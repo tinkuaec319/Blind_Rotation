@@ -99,6 +99,12 @@ public:
         OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
     }
 
+    virtual void EvalAccTSW(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek,
+                         RLWECiphertext& acc, const NativeVector& a) const {
+            std::cout<<"run EvalAccTSW in rgsw-acc.h"<<std::endl;
+        OPENFHE_THROW(not_implemented_error, "ACC operation not supported");
+    }    
+
     //虚拟函数，生成一个异常（not_implemented_error），以指示"ACC操作不受支持"。
     virtual void EvalAccTS(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek,
                          RLWECiphertext& acc, const NativeVector& a) const {
