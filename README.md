@@ -30,7 +30,7 @@ accordingly in file [binfhe-base-scheme.cpp] present at CHIFHE_RGSW_KeyMerge/src
 Experiment results carried out on a commodity laptop with a $12^{th}$ Gen Intel(R) Core $i5$-12450H  $\times 12$ running at 400MHz-4400GHz on a Linux 22.04.5 LTS machine.
  ```
 //NTRU based 
-1000 times of Xiang et al. blind rotation using parameters P128G for gate bootstrapping:   77 ms
+1000 times of Xiang et al. blind rotation using parameters P128G for gate bootstrapping:   57 ms
 
 //RGSW based
 1000 times of AP blind rotation using parameters STD128 for gate bootstrapping:            105 ms  
