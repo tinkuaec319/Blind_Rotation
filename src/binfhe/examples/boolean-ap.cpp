@@ -49,8 +49,9 @@ int main() {
     // (AP or GINX). The default method is GINX. Here we explicitly set AP. GINX
     // typically provides better performance: the bootstrapping key is much
     // smaller in GINX (by 20x) while the runtime is roughly the same.
-    //cc.GenerateBinFHEContext(STD128, AP);
-       cc.GenerateBinFHEContext(STD128_LMKCDEY_LWR, AP);
+    cc.GenerateBinFHEContext(STD128, AP);
+    // cc.GenerateBinFHEContext(STD128_LMKCDEY, AP);
+       
 
     // Sample Program: Step 2: Key Generation
 
@@ -94,6 +95,7 @@ int main() {
     cc.Decrypt(sk, ctResult, &result);
     std::cout << "Result of encrypted computation of (1 AND 1) OR (1 AND (NOT 1)) = " << result << std::endl;
 
+
     int m1=1;
     int m2=1;
     auto total_time=0;
@@ -128,11 +130,11 @@ int main() {
 
         // std::cout << "Result of enc/dec of 1/0 is:"<<result1<<"/"<<result2<<std::endl;
         //std::cout << "Result of enc/dec of........................................................... ("<<m1<<" NAND "<<m2<<")=(0)--> "<<result<<std::endl;        
-        // if (result)
-        // {
-        //     std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
-        //     break;
-        // }
+        if (result)
+        {
+            std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
+            break;
+        }
         
     }    
     std::cout<<"Total computation time is:"<<(total_time/(1000*Enc_total))<<std::endl;    

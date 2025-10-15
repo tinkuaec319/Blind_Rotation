@@ -44,7 +44,7 @@ int main() {
     auto cc = BinFHEContext();
 
     // We use the STD128 setting optimized for the LMKCDEY mode.
-    cc.GenerateBinFHEContext(STD128_LMKCDEY, LMKCDEY);
+    cc.GenerateBinFHEContext(STD128, LMKCDEY);
 
     // Sample Program: Step 2: Key Generation
 

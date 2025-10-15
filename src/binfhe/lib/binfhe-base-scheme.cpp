@@ -932,14 +932,21 @@ NTRUCiphertext BinFHEScheme::BootstrapGateCoreS(const std::shared_ptr<BinFHECryp
     // auto polym2{polym.AutomorphismTransform(invw)};  
     auto acc = std::make_shared<NTRUCiphertextImpl>(std::move(polym));    
     
-    //This function should be called for LEE et al. way to perform blind rotation.
+    //This function should be called for blind rotation technique proposed by LEE et al. in [Efficient FHEW bootstrapping
+    //with small evaluation keys, and applications to threshold homomorphic encryption] 
+    
     // NACCscheme->EvalAccS(NTRUParams, ek, acc, ct->GetA());
 
-    //This function should be called if the positive and negative sets are merged together to reduce number of key switch operations (Li et al.).
+    //This function should be called if positive and negative sets are merged together to reduce number of key switch computations 
+    //proposed by Li et al. in [Faster ntru-based bootstrapping in less than 4 ms]
+
     // NACCscheme->EvalAccTS(NTRUParams, ek, acc, ct->GetA());    
     
-    //This function should be called bootstrappin key is merged with key switch key to reduce number of key switch operations (Proposed Technique)
+    //This function should be called when bootstrappin key is merged with that of key-switch key to reduce number of key switch 
+    // computations (the Proposed Technique)
+    
     NACCscheme->EvalAccTSC(NTRUParams, ek, acc, ct->GetA());    
+
     return acc;
 }
 
@@ -1002,14 +1009,13 @@ RLWECiphertext BinFHEScheme::BootstrapGateCore(const std::shared_ptr<BinFHECrypt
     auto acc = std::make_shared<RLWECiphertextImpl>(std::move(res));
  
     //This function should be called for LEE et al. way to perform blind rotation.
-    ACCscheme->EvalAcc(RGSWParams, ek, acc, ct->GetA());
+    // ACCscheme->EvalAcc(RGSWParams, ek, acc, ct->GetA());
     
     //This function should be called if the positive and negative sets are merged together to reduce number of key switch operations (Li et al.).
-    // ACCscheme->EvalAccTS(RGSWParams, ek, acc, ct->GetA());
     // ACCscheme->EvalAccTSW(RGSWParams, ek, acc, ct->GetA());
     
     //This function should be called bootstrappin key is merged with key switch key to reduce number of key switch operations (Proposed Technique)
-    // ACCscheme->EvalAccTSS(RGSWParams, ek, acc, ct->GetA());
+    ACCscheme->EvalAccTSS(RGSWParams, ek, acc, ct->GetA());
     return acc;
 }
 

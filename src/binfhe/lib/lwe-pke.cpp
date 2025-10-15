@@ -382,7 +382,7 @@ LWESwitchingKey LWEEncryptionScheme::KeySwitchGen(const std::shared_ptr<LWECrypt
                 
 #if NATIVEINT == 32
                 for (size_t i = 0; i < n; ++i) {
-                    std::cout<<"I am inside NATIVEINT"<<std::endl;
+                    // std::cout<<"I am inside NATIVEINT"<<std::endl;
                     b.ModAddFastEq(a[i].ModMulFast(sv[i], qKS, mu), qKS);
                 }
 #else

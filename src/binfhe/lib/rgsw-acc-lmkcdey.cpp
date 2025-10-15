@@ -687,7 +687,7 @@ void RingGSWAccumulatorLMKCDEY::EvalAcc(const std::shared_ptr<RingGSWCryptoParam
     }
 }
 
-//Implementation of LEE et al. paper
+//Implementation of Li et al. paper
 void RingGSWAccumulatorLMKCDEY::EvalAccTSW(const std::shared_ptr<RingGSWCryptoParams>& params, ConstRingGSWACCKey& ek,
                                         RLWECiphertext& acc, const NativeVector& a) const {
     //please check keys before running this program...where are the aut keys are stored.                                            

@@ -44,7 +44,8 @@ int main() {
     auto cc = BinFHEContext();
 
     // We use the STD128 setting optimized for the LMKCDEY mode.
-    cc.GenerateBinFHEContext(STD128_LMKCDEY, LMKCDEY);
+    // cc.GenerateBinFHEContext(STD128_LMKCDEY, LMKCDEY);
+    cc.GenerateBinFHEContext(STD128, LMKCDEY);
 
     // Sample Program: Step 2: Key Generation
 
@@ -61,7 +62,7 @@ int main() {
     // Sample Program: Step 3: Encryption
 
 
-    int m1=0;
+    int m1=1;
     int m2=1;
 
     // Encrypt two ciphertexts representing Boolean True (1)
@@ -69,7 +70,8 @@ int main() {
     // If you wish to get a fresh encryption without bootstrapping, write
     // auto   ct1 = cc.Encrypt(sk, 1, FRESH);
     auto total_time=0;
-    int Enc_total=500;
+    int Enc_total=1000;
+    LWEPlaintext result;
 
     for (int i=0; i<Enc_total; i++){
       auto ct1 = cc.Encrypt(sk, m1);
@@ -82,6 +84,13 @@ int main() {
       auto comp_time=duration_cast<microseconds>(end-start);
       // std::cout<<"Time taken is:"<<comp_time.count()<<std::endl;
       total_time=total_time + comp_time.count();
+      cc.Decrypt(sk, ctAND1, &result);   
+
+      if (result)
+      {
+          std::cout<<"Decryption incorrect....please have a look on the code"<<std::endl;
+          break;
+      }
     }
       /* 
       // Compute (1 AND 1) = 1; Other binary gate options are OR, NAND, and NOR
