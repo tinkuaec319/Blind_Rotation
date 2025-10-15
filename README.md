@@ -27,7 +27,7 @@ accordingly in file [binfhe-base-scheme.cpp] present at CHIFHE_RGSW_KeyMerge/src
 
 2. Run the `boolean-SS` program in `build/bin/examples/binfhe`.
    
-Experiment results carried out on a commodity laptop with a $12^{th}$ Gen Intel(R) Core $i5$-12450H  $\times 12$ running at 400MHz-$4400$GHz on a Linux 22.04.5 LTS machine.
+Experiment results carried out on a commodity laptop with a $12^{th}$ Gen Intel(R) Core $i5$-12450H  $\times 12$ running at 400MHz-4400GHz on a Linux 22.04.5 LTS machine.
  ```
 //NTRU based 
 1000 times of Xiang et al. blind rotation using parameters P128G for gate bootstrapping:   77 ms
